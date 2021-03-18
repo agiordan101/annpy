@@ -1,5 +1,6 @@
 import numpy as np
-from activations import Activations
+import activations as fa
+# from MLP_lib import *
 
 class Layer():
 
@@ -12,7 +13,7 @@ class Layer():
 		self.name = name
 		self.input_shape = input_shape
 		self.output_shape = output_shape
-		self.activation, self.activation_deriv = Activations.get(activation, Activations["ReLU"])
+		self.activation, self.activation_deriv = fa.get.get(activation, fa.get["ReLU"])
 
 	# def init_weights(self, input_shape):
 

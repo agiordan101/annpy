@@ -7,6 +7,3 @@ class SGD():
 
 	def forward(self, weights, deriv):
 		return weights - self.lr * deriv
-
-	# def backward(self):
-	# 	pass

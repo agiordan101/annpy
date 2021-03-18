@@ -1,5 +1,5 @@
 import numpy as np
-from 
+
 
 class Model():
 
@@ -61,7 +61,6 @@ class Model():
 
 		prediction = self.forward(features)
 
-		loss =  
 		dloss = prediction - targets
 		# self.sequence_rev = self.sequence.reverse() 
 
