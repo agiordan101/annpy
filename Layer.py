@@ -1,18 +1,18 @@
 import numpy as np
-import activations
+from activations import Activations
 
 class Layer():
 
 	def __init__(self,
 					output_shape,
 					input_shape=None,
-					activation=activations.linear,
+					activation="linear",
 					name="Default layers name"):
 
+		self.name = name
 		self.input_shape = input_shape
 		self.output_shape = output_shape
-		self.activation = activation
-		self.name = name
+		self.activation, self.activation_deriv = Activations.get(activation, Activations["ReLU"])
 
 	# def init_weights(self, input_shape):
 
@@ -24,21 +24,32 @@ class Layer():
 	# 	return self.weights
 
 	def compile(self, input_shape):
-		# Create matrix weights
 		# Link last layer output
 
-		self.weights = np.random.rand(self.output_shape, input_shape)
-		return self.weights
+		# self.weights = np.random.rand(input_shape + 1, self.output_shape)
+		self.weights = np.random.rand(input_shape, self.output_shape) * 2 - 1
+		self.bias = np.random.rand(self.output_shape) * 2 - 1
+		return [self.weights, self.bias]
 
 	def forward(self, inputs):
 
-		return self.activation(np.dot(self.weights, inputs))
+		# return self.activation(np.dot(self.weights, inputs))
+		print(f"Inputs shape; {inputs.shape}")
 
-	# def backward(self):
-	# 	pass
+		self.inputs = inputs
+		self.ws = np.dot(self.inputs, self.weights) + self.bias
+		self.activation = self.activation(self.ws)
+
+		print(f"Output shape: {self.activation.shape}")
+		return self.activation
+
+	def backward(self, loss):
+
+		return self.inputs * self.activation_deriv(self.ws) * loss
 
 	def summary(self):
 		
-		print(f"FCLayer: shape={self.weights.shape}, activation={self.activation}")
+		# print(f"FCLayer: shape={self.weights.shape}, activation={self.activation}")
+		print(f"FCLayer: shape={self.weights.shape} + {self.bias.shape}, activation={self.activation}")
 		# print(f"weights {self.weights}")
 

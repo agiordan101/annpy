@@ -1,4 +1,5 @@
 import numpy as np
+from 
 
 class Model():
 
@@ -15,18 +16,12 @@ class Model():
 			self.sequence = []
 
 	def add(self, obj):
-
-		# if self.sequence:
-		# 	# Save reference of layers's weights matrix
-		# 	self.weights.append(obj.init_weights(self.sequence[-1].output_shape))
-
 		# Add Object into sequential model
 		self.sequence.append(obj)
 
 	def compile(self,
 				loss="MSE",
 				optimizer="SGD"):
-		# Compile each layers
 		# Save param for losses and optimizers
 
 		if self.input_shape:
@@ -39,28 +34,37 @@ class Model():
 			raise Exception(f"[ERROR] {self} input_shape of layer 0 missing")
 
 		input_shape = self.input_shape
+
 		self.weights = []
 		for layer in self.sequence:
 			# print(f"New layer to compile {input_shape}")
-			self.weights.append(layer.compile(input_shape))
+			self.weights.extend(layer.compile(input_shape))
 			input_shape = layer.output_shape
-
 
 	def forward(self, inputs):
 
+		# print(f"Input shape={inputs.shape}")
+		# inputs = np.insert(inputs, len(inputs), 1, axis=len(inputs.shape) - 1)
+		# print(inputs)
 		for layer in self.sequence:
 			inputs = layer.forward(inputs)
 
 		return inputs
 
-	# def fit(self,
-	# 		features,
-	# 		targets,
-	# 		validation_features=None,
-	# 		validation_targets=None,
-	# 		k_fold_as_validation=False,
-	# 		k_fold_percent=0.2,):
-	# 	pass
+	def fit(self,
+			features,
+			targets,
+			validation_features=None,
+			validation_targets=None,
+			k_fold_as_validation=False,
+			k_fold_percent=0.2):
+
+		prediction = self.forward(features)
+
+		loss =  
+		dloss = prediction - targets
+		# self.sequence_rev = self.sequence.reverse() 
+
 
 	def summary(self):
 		
@@ -75,6 +79,6 @@ class Model():
 		
 		self.summary()
 		print()
-		for layer in self.weights:
-			print(f"Weights:\n{layer}\n")
+		for i, layer in enumerate(self.weights):
+			print(f"{'Bias' if i % 2 else 'Weights'} {i // 2}:\n{layer}\n")
 
