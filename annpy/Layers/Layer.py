@@ -19,7 +19,7 @@ class Layer():
 		self.input_shape = input_shape
 		self.output_shape = output_shape
 
-		self.fa = parse_object(activation, annpy.activations.Activation, fas, annpy.activations.Linear)
+		self.fa = annpy.utils.parse.parse_object(activation, annpy.activations.Activation, fas, annpy.activations.Linear)
 
 		# if hasattr(activation, "__call__") and hasattr(activation, "derivate"):
 		# 	self.fa = activation()

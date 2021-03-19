@@ -32,6 +32,7 @@ class Sequencial():
 			raise Exception(f"[ERROR] {self} input_shape of layer 0 missing")
 		input_shape = self.input_shape
 
+		# annpy.utils.parse.parse_object(activation, annpy.activations.Activation, fas, annpy.activations.Linear)
 		self.loss = loss
 		self.optimizer = optimizer
 
