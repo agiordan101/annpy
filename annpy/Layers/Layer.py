@@ -1,6 +1,5 @@
 import numpy as np
 import activations as fa
-# from MLP_lib import *
 
 class Layer():
 
