@@ -1,6 +1,6 @@
 import numpy as np
 
-class Sequencial():
+class Model():
 
 	def __init__(self,
 					input_shape=None,
@@ -21,19 +21,18 @@ class Sequencial():
 	def compile(self,
 				loss="MSE",
 				optimizer="SGD"):
-		# Save param for losses and optimizers ?
+		# Save param for losses and optimizers
 
-		# input_shape handler
 		if self.input_shape:
 			pass
+
 		elif self.sequence[0].input_shape:
 			self.input_shape = self.sequence[0].input_shape
+
 		else:
 			raise Exception(f"[ERROR] {self} input_shape of layer 0 missing")
-		input_shape = self.input_shape
 
-		self.loss = loss
-		self.optimizer = optimizer
+		input_shape = self.input_shape
 
 		self.weights = []
 		for layer in self.sequence:
@@ -57,16 +56,12 @@ class Sequencial():
 			validation_features=None,
 			validation_targets=None,
 			k_fold_as_validation=False,
-			k_fold_percent=0.2,
-			verbose=False):
+			k_fold_percent=0.2):
 
 		prediction = self.forward(features)
 
-		loss = self.loss()
 		dloss = prediction - targets
-
-		for layer in self.sequence.reverse():
-			loss = layer.backward(loss)
+		# self.sequence_rev = self.sequence.reverse() 
 
 
 	def summary(self):

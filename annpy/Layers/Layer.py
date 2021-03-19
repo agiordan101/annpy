@@ -1,27 +1,32 @@
+import annpy
 import numpy as np
-import activations as fa
+
+fas = {
+	"ReLU": annpy.activations.ReLU,
+	"linear": annpy.activations.Linear,
+	"Sigmoid": annpy.activations.Sigmoid,
+}
 
 class Layer():
 
 	def __init__(self,
 					output_shape,
 					input_shape=None,
-					activation="linear",
+					activation=annpy.activations.Linear,
 					name="Default layers name"):
 
 		self.name = name
 		self.input_shape = input_shape
 		self.output_shape = output_shape
-		self.activation, self.activation_deriv = fa.get.get(activation, fa.get["ReLU"])
 
-	# def init_weights(self, input_shape):
+		self.fa = parse_object(activation, annpy.activations.Activation, fas, annpy.activations.Linear)
 
-	# 	if not self.input_shape:
-	# 		self.input_shape = input_shape
-
-	# 	self.weights = np.array(self.input_shape, self.output_shape)
-
-	# 	return self.weights
+		# if hasattr(activation, "__call__") and hasattr(activation, "derivate"):
+		# 	self.fa = activation()
+		# else:
+		# 	self.fa = fas.get(activation, annpy.activations.Linear)()
+		# elif isinstance(activation, str):
+		# 	self.activation = annpy.activations.Linear
 
 	def compile(self, input_shape):
 		# Link last layer output
@@ -34,22 +39,37 @@ class Layer():
 	def forward(self, inputs):
 
 		# return self.activation(np.dot(self.weights, inputs))
-		print(f"Inputs shape; {inputs.shape}")
+		print(f"Inputs shape: {inputs.shape}")
 
 		self.inputs = inputs
 		self.ws = np.dot(self.inputs, self.weights) + self.bias
-		self.activation = self.activation(self.ws)
+		self.activation = self.fa(self.ws)
 
 		print(f"Output shape: {self.activation.shape}")
 		return self.activation
 
 	def backward(self, loss):
+		"""
+			3 partial derivatives
+		"""
+		print(f"loss {loss.shape}:\n{loss}")
 
-		return self.inputs * self.activation_deriv(self.ws) * loss
+		# d(activation) / d(weighted sum)	*	d(error) / d(activation)
+		self.dfa = self.fa.derivate(self.ws) * loss
+		print(f"self.dfa {self.dfa.shape}:\n{self.dfa}")
+
+		# d(weighted sum) / d(wi)
+		self.dw = self.inputs * self.dfa
+		print(f"self.dw {self.dw.shape}:\n{self.dw}")
+
+		# d(weighted sum) / d(xi)
+		self.dx = self.weights * self.dfa
+		print(f"self.dx {self.dx.shape}:\n{self.dx}")
+		return self.dx
 
 	def summary(self):
 		
 		# print(f"FCLayer: shape={self.weights.shape}, activation={self.activation}")
-		print(f"FCLayer: shape={self.weights.shape} + {self.bias.shape}, activation={self.activation}")
+		print(f"FCLayer: shape={self.weights.shape} + {self.bias.shape}, activation={self.fa}")
 		# print(f"weights {self.weights}")
 

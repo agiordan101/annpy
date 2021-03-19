@@ -1,8 +1,10 @@
-from MLP_lib import *
+# from annpy.models.Sequencial import Sequencial
+import annpy
+import numpy as np
 
-model = Model(input_shape=2, name="First model")
-model.add(Layer(4, activation=fa.sigmoid))
-model.add(Layer(1, activation=fa.sigmoid))
+model = annpy.models.Sequencial(input_shape=2, name="First model")
+model.add(annpy.layers.Layer(4, activation="Sigmoid"))
+model.add(annpy.layers.Layer(1, activation="Sigmoid"))
 model.compile()
 model.deepsummary()
 
@@ -18,5 +20,7 @@ targets = np.array([[0],
 
 print(f"Inputs: {inputs}\nOutputs: {model.forward(np.array(inputs))}")
 
-# model.fit()
+model.fit(inputs, targets)
 # print(f"Inputs: {inputs}\nOutputs: {model.forward(np.array(inputs))}")
+
+print(f"")
