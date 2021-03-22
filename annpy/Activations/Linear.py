@@ -10,3 +10,6 @@ class Linear(Activation):
 
 	def derivate(self, x):
 		return x
+
+	# def __str__(self):
+	# 	return "Linear"

@@ -1,75 +1,37 @@
 import annpy
-import numpy as np
+from abc import ABCMeta, abstractmethod
 
-fas = {
-	"ReLU": annpy.activations.ReLU,
-	"linear": annpy.activations.Linear,
-	"Sigmoid": annpy.activations.Sigmoid,
-}
+class Layer(metaclass=ABCMeta):
 
-class Layer():
+	obj_type = "Layer"
 
 	def __init__(self,
 					output_shape,
 					input_shape=None,
-					activation=annpy.activations.Linear,
+					activation=annpy.activations.Linear(),
 					name="Default layers name"):
 
 		self.name = name
 		self.input_shape = input_shape
 		self.output_shape = output_shape
+		# self.fa = annpy.utils.parse.parse_object(activation, annpy.activations.Activation, self.fas, annpy.activations.Linear)
 
-		self.fa = annpy.utils.parse.parse_object(activation, annpy.activations.Activation, fas, annpy.activations.Linear)
+	# @abstractmethod
+	# def __str__(self):
+	# 	pass
 
-		# if hasattr(activation, "__call__") and hasattr(activation, "derivate"):
-		# 	self.fa = activation()
-		# else:
-		# 	self.fa = fas.get(activation, annpy.activations.Linear)()
-		# elif isinstance(activation, str):
-		# 	self.activation = annpy.activations.Linear
-
+	@abstractmethod
 	def compile(self, input_shape):
-		# Link last layer output
+		pass
 
-		# self.weights = np.random.rand(input_shape + 1, self.output_shape)
-		self.weights = np.random.rand(input_shape, self.output_shape) * 2 - 1
-		self.bias = np.random.rand(self.output_shape) * 2 - 1
-		return [self.weights, self.bias]
-
+	@abstractmethod
 	def forward(self, inputs):
+		pass
 
-		# return self.activation(np.dot(self.weights, inputs))
-		print(f"Inputs shape: {inputs.shape}")
-
-		self.inputs = inputs
-		self.ws = np.dot(self.inputs, self.weights) + self.bias
-		self.activation = self.fa(self.ws)
-
-		print(f"Output shape: {self.activation.shape}")
-		return self.activation
-
+	@abstractmethod
 	def backward(self, loss):
-		"""
-			3 partial derivatives
-		"""
-		print(f"loss {loss.shape}:\n{loss}")
+		pass
 
-		# d(activation) / d(weighted sum)	*	d(error) / d(activation)
-		self.dfa = self.fa.derivate(self.ws) * loss
-		print(f"self.dfa {self.dfa.shape}:\n{self.dfa}")
-
-		# d(weighted sum) / d(wi)
-		self.dw = self.inputs * self.dfa
-		print(f"self.dw {self.dw.shape}:\n{self.dw}")
-
-		# d(weighted sum) / d(xi)
-		self.dx = self.weights * self.dfa
-		print(f"self.dx {self.dx.shape}:\n{self.dx}")
-		return self.dx
-
+	@abstractmethod
 	def summary(self):
-		
-		# print(f"FCLayer: shape={self.weights.shape}, activation={self.activation}")
-		print(f"FCLayer: shape={self.weights.shape} + {self.bias.shape}, activation={self.fa}")
-		# print(f"weights {self.weights}")
-
+		pass

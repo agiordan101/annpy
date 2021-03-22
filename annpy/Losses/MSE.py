@@ -1,4 +1,5 @@
 import numpy as np
+from annpy.losses.Loss import Loss
 
 class MSE():
 
@@ -7,3 +8,6 @@ class MSE():
 
 	def __call__(self, prediction, targets):
 		return np.mean(np.square(targets - prediction), axis=0)
+
+	# def __str__(self):
+	# 	return "MSE"

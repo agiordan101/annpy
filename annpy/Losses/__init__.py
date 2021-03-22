@@ -1,1 +1,1 @@
-from annpy.losses.losses import *
+from annpy.losses.MSE import MSE

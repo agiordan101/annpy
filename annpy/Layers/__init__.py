@@ -1,1 +1,1 @@
-from annpy.layers.Layer import Layer
+from annpy.layers.FullyConnected import FullyConnected

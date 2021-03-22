@@ -12,3 +12,6 @@ class Sigmoid(Activation):
 	def derivate(self, x):
 		s = self(x)
 		return s * (1 - s)
+
+	# def __str__(self):
+	# 	return "Sigmoid"
