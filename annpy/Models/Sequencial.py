@@ -99,7 +99,7 @@ class Sequencial(Model):
 		# Split index list
 		array_split = list(range(0, features_len, batch_size))[1:]
 
-		print(f"vars {features_len} / {n_batch} / {array_split}")
+		# print(f"vars {features_len} / {n_batch} / {array_split}")
 
 		for epoch in range(epochs):
 
@@ -107,24 +107,34 @@ class Sequencial(Model):
 				print(f"\n-----------------------")
 				print(f"- EPOCH={epoch + 1}/{epochs}")
 
+			# Dataset shuffle + split
 			batchs = self.split_dataset(train_features, train_targets, array_split)
 
 			# print(list(batchs))
 			for step, data in enumerate(batchs):
 
-				# print(f"data {data}")
 				features, targets = data
+				# print(f"data {data}")
 				if verbose:
 					print(f"--- STEP={step + 1}/{n_batch}")
 					print(f"features {features}")
 					print(f"targets {targets}")
-				# prediction = self.forward(features)
 
-				# loss = self.loss(prediction, targets)
-				# dloss = prediction - targets
+				prediction = self.forward(features)
 
-				# for layer in self.sequence_rev:
-				# 	loss = layer.backward(loss)
+				loss = self.loss(prediction, targets)
+				gradients = prediction - targets, 0, 0
+
+				self.optimizer.gradients = []
+				for layer in self.sequence_rev:
+					layer.summary()
+					gradients = layer.backward(gradients[0])
+					self.optimizer.gradients.append(gradients)
+				exit(0)
+				
+				if verbose:
+					print(f"--- loss: {loss}\taccuracy: ")
+
 
 
 	def summary(self, only_model_summary=True):

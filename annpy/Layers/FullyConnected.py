@@ -42,18 +42,26 @@ class FullyConnected(Layer):
 		"""
 		print(f"loss {loss.shape}:\n{loss}")
 
-		# d(activation) / d(weighted sum)	*	d(error) / d(activation)
-		self.dfa = self.fa.derivate(self.ws) * loss
-		print(f"self.dfa {self.dfa.shape}:\n{self.dfa}")
+		# d(error) / d(activation)
+		de = self.fa.derivate(self.ws)
+		print(f"de {de.shape}:\n{de}")
+
+		# d(activation) / d(weighted sum)
+		dfa = de * loss
+		print(f"dfa {dfa.shape}:\n{dfa}")
 
 		# d(weighted sum) / d(wi)
-		self.dw = self.inputs * self.dfa
-		print(f"self.dw {self.dw.shape}:\n{self.dw}")
+		dw = self.inputs * dfa
+		print(f"dw {dw.shape}:\n{dw}")
+		
+		# d(weighted sum) / d(bias)
+		db = dfa
+		print(f"db {db.shape}:\n{db}")
 
 		# d(weighted sum) / d(xi)
-		self.dx = self.weights * self.dfa
-		print(f"self.dx {self.dx.shape}:\n{self.dx}")
-		return self.dx
+		dx = self.weights * dfa
+		print(f"dx {dx.shape}:\n{dx}")
+		return dx, dw, db
 
 	def summary(self):
 		

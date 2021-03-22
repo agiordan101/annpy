@@ -6,11 +6,11 @@ from annpy.activations.Linear import Linear
 from annpy.activations.Sigmoid import Sigmoid
 
 objects = {
-	'MSE':		MSE,
-	'SGD':		SGD,
-	'ReLU':		ReLU,
-	'Linear':	Linear,
-	'Sigmoid':	Sigmoid,
+	'MSE': MSE,
+	'SGD': SGD,
+	'ReLU': ReLU,
+	'Linear': Linear,
+	'Sigmoid': Sigmoid,
 }
 
 def parse_object(obj, cls, str_allowed=True):
