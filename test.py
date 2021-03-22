@@ -10,14 +10,16 @@ model.compile()
 model.deepsummary()
 
 # XOR test
-inputs = np.array([[0, 0],
-					[0, 1],
-					[1, 0],
-					[1, 1]])
-targets = np.array([[0],
-					[1],
-					[1],
-					[0]])
+inputs = np.array([[0, 0]])
+targets = np.array([[0]])
+# inputs = np.array([[0, 0],
+# 					[0, 1],
+# 					[1, 0],
+# 					[1, 1]])
+# targets = np.array([[0],
+# 					[1],
+# 					[1],
+# 					[0]])
 
 prediction = model.forward(np.array(inputs))
 print(f"Inputs {len(inputs)}: {inputs}\nOutputs {len(prediction)}: {prediction}\n\n")

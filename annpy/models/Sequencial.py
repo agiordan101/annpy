@@ -127,7 +127,6 @@ class Sequencial(Model):
 
 				self.optimizer.gradients = []
 				for layer in self.sequence_rev:
-					layer.summary()
 					gradients = layer.backward(gradients[0])
 					self.optimizer.gradients.append(gradients)
 				exit(0)
