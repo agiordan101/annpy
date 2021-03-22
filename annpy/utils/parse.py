@@ -1,15 +1,21 @@
 import annpy
+from annpy.losses.MSE import MSE
+from annpy.optimizers.SGD import SGD
+from annpy.activations.ReLU import ReLU
+from annpy.activations.Linear import Linear
+from annpy.activations.Sigmoid import Sigmoid
 
 objects = {
-	'MSE':		annpy.losses.MSE,
-	'SGD':		annpy.optimizers.SGD,
-	'ReLU':		annpy.activations.ReLU,
-	'Linear':	annpy.activations.Linear,
-	'Sigmoid':	annpy.activations.Sigmoid,
+	'MSE':		MSE,
+	'SGD':		SGD,
+	'ReLU':		ReLU,
+	'Linear':	Linear,
+	'Sigmoid':	Sigmoid,
 }
 
 def parse_object(obj, cls, str_allowed=True):
 
+	# print(f"cls={cls}")
 	if str_allowed and isinstance(obj, str) and obj in objects:
 		obj = objects[obj]()
 

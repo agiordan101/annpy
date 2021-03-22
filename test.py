@@ -19,7 +19,8 @@ targets = np.array([[0],
 					[1],
 					[0]])
 
-print(f"Inputs: {inputs}\nOutputs: {model.forward(np.array(inputs))}")
+prediction = model.forward(np.array(inputs))
+print(f"Inputs {len(inputs)}: {inputs}\nOutputs {len(prediction)}: {prediction}\n\n")
 
 model.fit(inputs, targets)
 # print(f"Inputs: {inputs}\nOutputs: {model.forward(np.array(inputs))}")

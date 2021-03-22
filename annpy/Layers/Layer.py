@@ -1,20 +1,19 @@
 import annpy
 from abc import ABCMeta, abstractmethod
+from annpy.utils.parse import parse_object
+from annpy.activations.Activation import Activation
+from annpy.activations.Linear import Linear
 
 class Layer(metaclass=ABCMeta):
 
 	obj_type = "Layer"
 
-	def __init__(self,
-					output_shape,
-					input_shape=None,
-					activation=annpy.activations.Linear(),
-					name="Default layers name"):
+	def __init__(self, output_shape, input_shape, activation, name):
 
 		self.name = name
 		self.input_shape = input_shape
 		self.output_shape = output_shape
-		# self.fa = annpy.utils.parse.parse_object(activation, annpy.activations.Activation, self.fas, annpy.activations.Linear)
+		self.fa = parse_object(activation, Activation)
 
 	# @abstractmethod
 	# def __str__(self):

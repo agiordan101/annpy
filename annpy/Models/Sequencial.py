@@ -1,6 +1,7 @@
 import annpy
 import numpy as np
 from annpy.models.Model import Model
+from annpy.layers.Layer import Layer
 
 class Sequencial(Model):
 
@@ -9,9 +10,8 @@ class Sequencial(Model):
 					input_layer=None,
 					name="Default models name"):
 
-		super().__init__(input_shape=input_shape,
-							input_layer=input_layer,
-							name=name)
+		super().__init__(input_shape, input_layer, name)
+
 		if input_layer:
 			self.sequence = [input_layer]
 		else:
@@ -21,20 +21,25 @@ class Sequencial(Model):
 	# 	return "Sequential"
 
 	def add(self, obj):
-		# Add Object into sequential model
-		self.sequence.append(obj)
+		if issubclass(type(obj), Layer):
+			# Add Object into sequential model
+			self.sequence.append(obj)
+		else:
+			raise Exception(f"Object {obj} is not a child of abstact class {Layer}")
 
 	def compile(self,
 				loss="MSE",
 				optimizer="SGD"):
 		
-		super().compile(loss=loss, optimizer=optimizer)
+		super().compile(loss, optimizer)
 
 		# input_shape handler
 		if self.input_shape:
 			pass
+
 		elif self.sequence[0].input_shape:
 			self.input_shape = self.sequence[0].input_shape
+
 		else:
 			raise Exception(f"[ERROR] {self} input_shape of layer 0 missing")
 		input_shape = self.input_shape
@@ -44,6 +49,10 @@ class Sequencial(Model):
 			# print(f"New layer to compile {input_shape}")
 			self.weights.extend(layer.compile(input_shape))
 			input_shape = layer.output_shape
+
+		# Make reverse list for fitting method
+		self.sequence_rev = self.sequence.copy()
+		self.sequence_rev.reverse()
 
 	def forward(self, inputs):
 
@@ -55,22 +64,67 @@ class Sequencial(Model):
 
 		return inputs
 
+	def split_dataset(self, a, b, array_split):
+
+		# Shuffle
+		seed = np.random.get_state()
+		np.random.shuffle(a)
+		np.random.set_state(seed)
+		np.random.shuffle(b)
+
+		# Split batches
+		a = np.split(a, array_split)
+		b = np.split(b, array_split)
+
+		# Merge
+		return list(zip(a, b))
+
 	def fit(self,
-			features,
-			targets,
-			validation_features=None,
-			validation_targets=None,
-			k_fold_as_validation=False,
-			k_fold_percent=0.2,
-			verbose=False):
+			train_features,
+			train_targets,
+			batch_size=4,
+			epochs=10,
+			# validation_features=None,
+			# validation_targets=None,
+			# k_fold_as_validation=False,
+			# k_fold_percent=0.2,
+			verbose=True):
 
-		prediction = self.forward(features)
+		# Dataset length
+		features_len = len(train_features)
 
-		loss = self.loss()
-		dloss = prediction - targets
+		# Batchs number
+		n_batch = features_len // batch_size + (1 if len(train_features) % batch_size else 0)
 
-		for layer in self.sequence.reverse():
-			loss = layer.backward(loss)
+		# Split index list
+		array_split = list(range(0, features_len, batch_size))[1:]
+
+		print(f"vars {features_len} / {n_batch} / {array_split}")
+
+		for epoch in range(epochs):
+
+			if verbose:
+				print(f"\n-----------------------")
+				print(f"- EPOCH={epoch + 1}/{epochs}")
+
+			batchs = self.split_dataset(train_features, train_targets, array_split)
+
+			# print(list(batchs))
+			for step, data in enumerate(batchs):
+
+				# print(f"data {data}")
+				features, targets = data
+				if verbose:
+					print(f"--- STEP={step + 1}/{n_batch}")
+					print(f"features {features}")
+					print(f"targets {targets}")
+				# prediction = self.forward(features)
+
+				# loss = self.loss(prediction, targets)
+				# dloss = prediction - targets
+
+				# for layer in self.sequence_rev:
+				# 	loss = layer.backward(loss)
 
 
 	def summary(self, only_model_summary=True):

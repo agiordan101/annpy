@@ -3,10 +3,7 @@ import numpy as np
 
 class Model():
 
-	def __init__(self,
-					input_shape=None,
-					input_layer=None,
-					name="Default models name"):
+	def __init__(self, input_shape, input_layer, name):
 
 		self.name = name
 		self.input_shape = input_shape
@@ -18,14 +15,12 @@ class Model():
 	# def __str__(self):
 	# 	return "Model"
 
-	def compile(self,
-				loss="MSE",
-				optimizer="SGD"):
-		self.loss = annpy.utils.parse.parse_object(loss, annpy.losses.Loss)
-		self.optimizer = annpy.utils.parse.parse_object(optimizer, annpy.optimizers.Optimizer)
+	def compile(self, loss, optimizer):
+		self.loss = annpy.utils.parse.parse_object(loss, annpy.losses.Loss.Loss)
+		self.optimizer = annpy.utils.parse.parse_object(optimizer, annpy.optimizers.Optimizer.Optimizer)
 
 	def forward(self, inputs):
-        raise NotImplementedError
+		raise NotImplementedError
 
 	def fit(self,
 			features,
@@ -35,7 +30,7 @@ class Model():
 			k_fold_as_validation=False,
 			k_fold_percent=0.2,
 			verbose=False):
-        raise NotImplementedError
+		raise NotImplementedError
 
 	def summary(self, only_model_summary=True):
 

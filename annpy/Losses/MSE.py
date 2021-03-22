@@ -1,7 +1,7 @@
 import numpy as np
 from annpy.losses.Loss import Loss
 
-class MSE():
+class MSE(Loss):
 
 	def __init__(self):
 		pass

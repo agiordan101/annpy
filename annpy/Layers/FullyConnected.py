@@ -1,19 +1,17 @@
 import annpy
 import numpy as np
 from annpy.layers.Layer import Layer
+from annpy.activations.Linear import Linear
 
 class FullyConnected(Layer):
 
 	def __init__(self,
 					output_shape,
 					input_shape=None,
-					activation=annpy.activations.Linear,
+					activation=Linear(),
 					name="Default layers name"):
 
-		super().__init__(output_shape=output_shape,
-							input_shape=input_shape,
-							activation=activation,
-							name=name)
+		super().__init__(output_shape, input_shape, activation, name)
 
 	# def __str__(self):
 	# 	return "FullyConnected"
