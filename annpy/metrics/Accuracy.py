@@ -7,24 +7,20 @@ class Accuracy(Metrics):
 		super().__init__()
 		pass
 
-	def __call__(self, prediction, targets, mask=None):
-		
-		mask = mask or np.full(len(prediction), 1)
-		print(mask)
+	def __call__(self, prediction, targets):
+		# (batch_size, output_neuron)
 
-		valids = [1 for predict, target, desired in zip(prediction, targets, mask) if desired and np.array_equal(predict, target)]
-		print(f"valids: {valids}")
-
-		self.count += len(valids)
+		self.count += len([1 for predict, target in zip(prediction, targets) if np.array_equal(predict, target)])
 		self.total += len(prediction)
 		self.accuracy = self.count / self.total
 
 	def get_result(self):
-		return self.accuracy
+		return self.count / self.total
 
 	def reset(self):
 		self.count = 0
 		self.total = 0
+		return self.accuracy
 
 	def summary(self):
 		print(f"Accuracy:\t{self} (Exact values tested)")

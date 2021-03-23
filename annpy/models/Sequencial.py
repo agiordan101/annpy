@@ -105,7 +105,7 @@ class Sequencial(Model):
 
 		# print(f"vars {features_len} / {n_batch} / {array_split}")
 
-		loss_sum = None
+		loss = None
 		for epoch in range(epochs):
 
 			if verbose:
@@ -116,7 +116,6 @@ class Sequencial(Model):
 			batchs = self.split_dataset(train_features, train_targets, array_split)
 
 			# print(list(batchs))
-			loss_sum = 0
 			for step, data in enumerate(batchs):
 
 				features, targets = data
@@ -127,13 +126,18 @@ class Sequencial(Model):
 					# print(f"features {features}")
 					# print(f"targets {targets}")
 
+				# Prediction
 				prediction = self.forward(features)
 
-				loss = self.loss(prediction, targets)
-				loss_sum += loss
-				gradients = prediction - targets, 0, 0
+				# Loss
+				self.loss(prediction, targets)
 
-				# print(f"loss function: {gradients[0]}")
+				# Metrics
+				for metric in self.metrics:
+					metric(prediction, targets)
+
+				# Backpropagation
+				gradients = prediction - targets, 0, 0
 
 				self.optimizer.gradients = []
 				for layer in self.sequence_rev:
@@ -142,14 +146,15 @@ class Sequencial(Model):
 					self.optimizer.gradients.append(gradients)
 
 				if verbose:
-					print(f"STEP {step} loss={loss}\n")
+					print(f"STEP {step}\n")
 
+				# Optimizer
 				self.optimizer.apply_gradients(self.weights)
 
-			loss_sum /= n_batch
-			print(f"EPOCH {epoch} loss={loss_sum}")
+			loss = self.loss.reset()
+			print(f"EPOCH {epoch} -- loss: {loss} -- accuracy: ")
 		
-		return loss_sum
+		return loss
 
 
 
