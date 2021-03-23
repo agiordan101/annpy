@@ -3,13 +3,6 @@ import annpy
 import numpy as np
 from annpy.optimizers.Optimizer import Optimizer
 
-model = annpy.models.Sequencial(input_shape=2, name="First model")
-model.add(annpy.layers.FullyConnected(4, activation="Sigmoid"))
-model.add(annpy.layers.FullyConnected(1, activation="Sigmoid"))
-model.compile(loss="MSE",
-				optimizer=annpy.optimizers.SGD(1))
-model.deepsummary()
-
 # XOR test
 # inputs = np.array([[0, 0]])
 # targets = np.array([[0]])
@@ -30,10 +23,35 @@ targets = np.array([[0],
 					[1],
 					[0]])
 
-prediction = model.forward(np.array(inputs))
-print(f"PREDICTION ->\nInputs {len(inputs)}: {inputs}\nOutputs {len(prediction)}: {prediction}\nOutputs {len(targets)}: {targets}\n\n")
+model = annpy.models.Sequencial(input_shape=2, name="First model")
+model.add(annpy.layers.FullyConnected(4, activation="Sigmoid"))
+model.add(annpy.layers.FullyConnected(1, activation="Sigmoid"))
+model.compile(loss="MSE",
+				optimizer=annpy.optimizers.SGD(20),
+				metrics=["Accuracy"])
+model.deepsummary()
 
-loss = model.fit(inputs, targets, epochs=42000, batch_size=4, verbose=False)
+# output = [[1, 2, 3, 4, 5], [2, 2, 3, 3.9, 5.1]]
+# target = [[1, 2, 3, 4, 5], [2, 2, 3, 3.9, 5.1]]
+
+# metric = annpy.metrics.Accuracy()
+# metric(output, target)
+# output = [[1, 2, 3, 4, 5]]
+# target = [[1, 2, 3, 2, 5]]
+# metric(output, target)
+# print(metric.get_result())
+
+# exit(0)
+
+
+prediction = model.forward(np.array(inputs))
+print(f"PREDICTION ->\nInputs {len(inputs)}: {inputs}\nOutputs {len(prediction)}: {prediction}\nOutputs {len(targets)}: {targets}\n")
+
+loss = model.fit(inputs,
+					targets,
+					epochs=42,
+					batch_size=4,
+					verbose=False)
 print(f"Model loss: {loss}")
 
 prediction = model.forward(np.array(inputs))

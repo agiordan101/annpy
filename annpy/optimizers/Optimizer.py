@@ -12,7 +12,7 @@ class Optimizer(metaclass=ABCMeta):
 		pass
 
 	@abstractmethod
-	def update_weights(self, weights_lst):
+	def apply_gradients(self, weights_lst):
 		# weights_lst:	[[w0, b0], [..., ...], [wn, bn]]
 		# gradients:	[(dx, dw, db), ...]
 		pass

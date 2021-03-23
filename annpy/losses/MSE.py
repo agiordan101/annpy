@@ -12,7 +12,7 @@ class MSE(Loss):
 		return np.mean(np.square(targets - prediction), axis=0)
 
 	def summary(self):
-		print(f"Loss:\t{self}")
+		print(f"Loss:\t\t{self}")
 
 	# def __str__(self):
 	# 	return "MSE"

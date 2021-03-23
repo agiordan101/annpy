@@ -30,17 +30,17 @@ class Sequencial(Model):
 
 	def compile(self,
 				loss="MSE",
-				optimizer="SGD"):
+				optimizer="SGD",
+				metrics=[]):
 		
-		super().compile(loss, optimizer)
+		# Save loss, optimizer and metrics
+		super().compile(loss, optimizer, metrics)
 
 		# input_shape handler
 		if self.input_shape:
 			pass
-
 		elif self.sequence[0].input_shape:
 			self.input_shape = self.sequence[0].input_shape
-
 		else:
 			raise Exception(f"[ERROR] {self} input_shape of layer 0 missing")
 		input_shape = self.input_shape
@@ -56,8 +56,6 @@ class Sequencial(Model):
 		self.sequence_rev = self.sequence.copy()
 		self.sequence_rev.reverse()
 
-		# self.deepsummary()
-		# exit(0)
 
 	def forward(self, inputs):
 
@@ -89,6 +87,7 @@ class Sequencial(Model):
 			train_targets,
 			batch_size=4,
 			epochs=420,
+			metrics=[],
 			# validation_features=None,
 			# validation_targets=None,
 			# k_fold_as_validation=False,
@@ -141,21 +140,11 @@ class Sequencial(Model):
 					# print(f"LAYER {layer.layer_index}")
 					gradients = layer.backward(gradients[0])
 					self.optimizer.gradients.append(gradients)
-				
 
 				if verbose:
 					print(f"STEP {step} loss={loss}\n")
 
-				# info = np.array(self.weights, dtype=object)
-				# print(f"\nself.weights {info.shape}:\n{info}\n")
-
-				# self.deepsummary()
-				self.optimizer.update_weights(self.weights)
-				# self.deepsummary()
-				# exit(0)
-
-				# info = np.array(self.weights, dtype=object)
-				# print(f"self.weights {info.shape}:\n{info}\n\n")
+				self.optimizer.apply_gradients(self.weights)
 
 			loss_sum /= n_batch
 			print(f"EPOCH {epoch} loss={loss_sum}")

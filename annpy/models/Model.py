@@ -1,5 +1,6 @@
 import annpy
 import numpy as np
+from annpy.losses.Loss import Loss
 
 class Model():
 
@@ -15,22 +16,22 @@ class Model():
 	# def __str__(self):
 	# 	return "Model"
 
-	def compile(self, loss, optimizer):
-		self.loss = annpy.utils.parse.parse_object(loss, annpy.losses.Loss.Loss)
+	def compile(self, loss, optimizer, metrics):
+		# self.loss = annpy.utils.parse.parse_object(loss, annpy.losses.Loss.Loss)
+		self.loss = annpy.utils.parse.parse_object(loss, Loss)
 		self.optimizer = annpy.utils.parse.parse_object(optimizer, annpy.optimizers.Optimizer.Optimizer)
+		self.metrics = []
+		for metric in metrics:
+			self.metrics.append(annpy.utils.parse.parse_object(metric, annpy.metrics.Metrics.Metrics))
 
-	def forward(self, inputs):
+	def forward(self):
 		raise NotImplementedError
 
-	def fit(self,
-			features,
-			targets,
-			validation_features=None,
-			validation_targets=None,
-			k_fold_as_validation=False,
-			k_fold_percent=0.2,
-			verbose=False):
+	def fit(self):
 		raise NotImplementedError
+
+	# def evaluate(self, features, targets):
+	# 	raise NotImplementedError
 
 	def summary(self, only_model_summary=True):
 
@@ -39,6 +40,8 @@ class Model():
 		print(f"Input shape:  {self.input_shape}")
 		self.loss.summary()
 		self.optimizer.summary()
+		for metric in self.metrics:
+			metric.summary()
 
 		if only_model_summary:
 			print(f"-------------------\n")

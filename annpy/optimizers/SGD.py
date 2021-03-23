@@ -12,7 +12,7 @@ class SGD(Optimizer):
 		# print(f"Shapes: {weights.shape} - {self.lr} * {deriv.shape} = {ret.shape}")
 		return ret
 
-	def update_weights(self, weights_lst):
+	def apply_gradients(self, weights_lst):
 		# weights_lst:	[[w0, b0], [..., ...], [wn, bn]]
 		# gradients:	[(dx, dw, db), ...]
 
@@ -30,7 +30,7 @@ class SGD(Optimizer):
 			weightsb[1] += self(gradients[2])
 
 	def summary(self):
-		print(f"Optimizer:\t{self} ,\tlr={self.lr}")
+		print(f"Optimizer:\t{self}, lr={self.lr}")
 
 	# def __str__(self):
 	# 	return "SGD"
