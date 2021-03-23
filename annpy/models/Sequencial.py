@@ -23,6 +23,7 @@ class Sequencial(Model):
 	def add(self, obj):
 		if issubclass(type(obj), Layer):
 			# Add Object into sequential model
+			obj.layer_index = len(self.sequence)
 			self.sequence.append(obj)
 		else:
 			raise Exception(f"Object {obj} is not a child of abstact class {Layer}")
@@ -55,6 +56,9 @@ class Sequencial(Model):
 		self.sequence_rev = self.sequence.copy()
 		self.sequence_rev.reverse()
 
+		# self.deepsummary()
+		# exit(0)
+
 	def forward(self, inputs):
 
 		# print(f"Input shape={inputs.shape}")
@@ -84,7 +88,7 @@ class Sequencial(Model):
 			train_features,
 			train_targets,
 			batch_size=4,
-			epochs=10,
+			epochs=420,
 			# validation_features=None,
 			# validation_targets=None,
 			# k_fold_as_validation=False,
@@ -130,22 +134,28 @@ class Sequencial(Model):
 				loss_sum += loss
 				gradients = prediction - targets, 0, 0
 
+				# print(f"loss function: {gradients[0]}")
+
 				self.optimizer.gradients = []
 				for layer in self.sequence_rev:
+					# print(f"LAYER {layer.layer_index}")
 					gradients = layer.backward(gradients[0])
 					self.optimizer.gradients.append(gradients)
-				# exit(0)
+				
 
 				if verbose:
 					print(f"STEP {step} loss={loss}\n")
 
-				info = np.array(self.weights, dtype=object)
-				print(f"\nself.weights {info.shape}:\n{info}\n")
-				
-				self.optimizer.update_weights(self.weights)
+				# info = np.array(self.weights, dtype=object)
+				# print(f"\nself.weights {info.shape}:\n{info}\n")
 
-				info = np.array(self.weights, dtype=object)
-				print(f"self.weights {info.shape}:\n{info}\n\n")
+				# self.deepsummary()
+				self.optimizer.update_weights(self.weights)
+				# self.deepsummary()
+				# exit(0)
+
+				# info = np.array(self.weights, dtype=object)
+				# print(f"self.weights {info.shape}:\n{info}\n\n")
 
 			loss_sum /= n_batch
 			print(f"EPOCH {epoch} loss={loss_sum}")
@@ -169,8 +179,10 @@ class Sequencial(Model):
 		
 		if model_summary:
 			self.summary(only_model_summary=False)
-		print()
+
 		for i, layer in enumerate(self.weights):
-			print(f"{'Bias' if i % 2 else 'Weights'} {i // 2}:\n{layer}\n")
+			print(f"\nLayer {i}:\n")
+			print(f"Weights {layer[0].shape}:\n{layer[0]}\n")
+			print(f"Bias {layer[1].shape}:\n{layer[1]}\n")
 
 		print(f"-------------------\n")

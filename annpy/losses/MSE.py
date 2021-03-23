@@ -7,6 +7,8 @@ class MSE(Loss):
 		pass
 
 	def __call__(self, prediction, targets):
+		# print(f"prediction {prediction.shape}:\n{prediction}")
+		# print(f"targets {targets.shape}:\n{targets}")
 		return np.mean(np.square(targets - prediction), axis=0)
 
 	def summary(self):

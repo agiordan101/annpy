@@ -14,27 +14,27 @@ model.deepsummary()
 # inputs = np.array([[0, 0]])
 # targets = np.array([[0]])
 
-inputs = np.array([[0, 0],
-					[0, 1],
-					[1, 0]])
-targets = np.array([[0],
-					[1],
-					[1]])
-
 # inputs = np.array([[0, 0],
 # 					[0, 1],
-# 					[1, 0],
-# 					[1, 1]])
+# 					[1, 0]])
 # targets = np.array([[0],
 # 					[1],
-# 					[1],
-# 					[0]])
+# 					[1]])
+
+inputs = np.array([[0, 0],
+					[0, 1],
+					[1, 0],
+					[1, 1]])
+targets = np.array([[0],
+					[1],
+					[1],
+					[0]])
 
 prediction = model.forward(np.array(inputs))
-print(f"Inputs {len(inputs)}: {inputs}\nOutputs {len(prediction)}: {prediction}\n\n")
+print(f"PREDICTION ->\nInputs {len(inputs)}: {inputs}\nOutputs {len(prediction)}: {prediction}\nOutputs {len(targets)}: {targets}\n\n")
 
-loss = model.fit(inputs, targets, epochs=2, batch_size=4, verbose=False)
+loss = model.fit(inputs, targets, epochs=42000, batch_size=4, verbose=False)
 print(f"Model loss: {loss}")
 
-# prediction = model.forward(np.array(inputs))
-# print(f"Inputs {len(inputs)}: {inputs}\nOutputs {len(prediction)}: {prediction}\n\n")
+prediction = model.forward(np.array(inputs))
+print(f"PREDICTION ->\nInputs {len(inputs)}: {inputs}\nOutputs {len(prediction)}: {prediction}\nOutputs {len(targets)}: {targets}\n\n")

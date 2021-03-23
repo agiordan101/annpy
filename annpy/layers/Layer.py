@@ -6,11 +6,11 @@ from annpy.activations.Linear import Linear
 
 class Layer(metaclass=ABCMeta):
 
-	obj_type = "Layer"
 
 	def __init__(self, output_shape, input_shape, activation, name):
 
 		self.name = name
+		self.layer_index = None
 		self.input_shape = input_shape
 		self.output_shape = output_shape
 		self.fa = parse_object(activation, Activation)
