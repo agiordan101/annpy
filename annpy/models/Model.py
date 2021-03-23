@@ -37,8 +37,8 @@ class Model():
 		print(f"\n-------------------")
 		print(f"Summary of: {self.name}")
 		print(f"Input shape:  {self.input_shape}")
-		print(f"Loss: {self.loss}")
-		print(f"Optimizer: {self.optimizer}")
+		self.loss.summary()
+		self.optimizer.summary()
 
 		if only_model_summary:
 			print(f"-------------------\n")

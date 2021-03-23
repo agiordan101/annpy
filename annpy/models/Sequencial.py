@@ -44,10 +44,11 @@ class Sequencial(Model):
 			raise Exception(f"[ERROR] {self} input_shape of layer 0 missing")
 		input_shape = self.input_shape
 
+		# w0, b0, ..., ..., wn, bn
 		self.weights = []
 		for layer in self.sequence:
 			# print(f"New layer to compile {input_shape}")
-			self.weights.extend(layer.compile(input_shape))
+			self.weights.append(layer.compile(input_shape))
 			input_shape = layer.output_shape
 
 		# Make reverse list for fitting method
@@ -101,38 +102,55 @@ class Sequencial(Model):
 
 		# print(f"vars {features_len} / {n_batch} / {array_split}")
 
+		loss_sum = None
 		for epoch in range(epochs):
 
 			if verbose:
-				print(f"\n-----------------------")
-				print(f"- EPOCH={epoch + 1}/{epochs}")
+				print(f"\n-------------------------")
+				print(f"EPOCH={epoch}/{epochs - 1}")
 
 			# Dataset shuffle + split
 			batchs = self.split_dataset(train_features, train_targets, array_split)
 
 			# print(list(batchs))
+			loss_sum = 0
 			for step, data in enumerate(batchs):
 
 				features, targets = data
 				# print(f"data {data}")
 				if verbose:
-					print(f"--- STEP={step + 1}/{n_batch}")
-					print(f"features {features}")
-					print(f"targets {targets}")
+					print(f"-----------")
+					print(f"STEP={step}/{n_batch - 1}")
+					# print(f"features {features}")
+					# print(f"targets {targets}")
 
 				prediction = self.forward(features)
 
 				loss = self.loss(prediction, targets)
+				loss_sum += loss
 				gradients = prediction - targets, 0, 0
 
 				self.optimizer.gradients = []
 				for layer in self.sequence_rev:
 					gradients = layer.backward(gradients[0])
 					self.optimizer.gradients.append(gradients)
-				exit(0)
-				
+				# exit(0)
+
 				if verbose:
-					print(f"--- loss: {loss}\taccuracy: ")
+					print(f"STEP {step} loss={loss}\n")
+
+				info = np.array(self.weights, dtype=object)
+				print(f"\nself.weights {info.shape}:\n{info}\n")
+				
+				self.optimizer.update_weights(self.weights)
+
+				info = np.array(self.weights, dtype=object)
+				print(f"self.weights {info.shape}:\n{info}\n\n")
+
+			loss_sum /= n_batch
+			print(f"EPOCH {epoch} loss={loss_sum}")
+		
+		return loss_sum
 
 
 

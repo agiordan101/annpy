@@ -10,6 +10,10 @@ class Loss(metaclass=ABCMeta):
 	def __call__(self, prediction, targets):
 		pass
 
+	@abstractmethod
+	def summary(self):
+		pass
+
 	# @abstractmethod
 	# def __str__(self):
 	# 	return "Loss"

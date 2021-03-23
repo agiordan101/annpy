@@ -4,7 +4,6 @@ class Optimizer(metaclass=ABCMeta):
 
 	def __init__(self, lr=0.1):
 
-		self.obj_type = "Optimizer"
 		self.lr = lr
 		self.gradients = []
 
@@ -12,8 +11,14 @@ class Optimizer(metaclass=ABCMeta):
 	def __call__(self):
 		pass
 
-	def update_weights(self, weights_lst, gradients):
-		# for ug hovy
+	@abstractmethod
+	def update_weights(self, weights_lst):
+		# weights_lst:	[[w0, b0], [..., ...], [wn, bn]]
+		# gradients:	[(dx, dw, db), ...]
+		pass
+
+	@abstractmethod
+	def summary(self):
 		pass
 
 	# @abstractmethod

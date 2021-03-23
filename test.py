@@ -6,12 +6,21 @@ from annpy.optimizers.Optimizer import Optimizer
 model = annpy.models.Sequencial(input_shape=2, name="First model")
 model.add(annpy.layers.FullyConnected(4, activation="Sigmoid"))
 model.add(annpy.layers.FullyConnected(1, activation="Sigmoid"))
-model.compile()
+model.compile(loss="MSE",
+				optimizer=annpy.optimizers.SGD(1))
 model.deepsummary()
 
 # XOR test
-inputs = np.array([[0, 0]])
-targets = np.array([[0]])
+# inputs = np.array([[0, 0]])
+# targets = np.array([[0]])
+
+inputs = np.array([[0, 0],
+					[0, 1],
+					[1, 0]])
+targets = np.array([[0],
+					[1],
+					[1]])
+
 # inputs = np.array([[0, 0],
 # 					[0, 1],
 # 					[1, 0],
@@ -24,5 +33,8 @@ targets = np.array([[0]])
 prediction = model.forward(np.array(inputs))
 print(f"Inputs {len(inputs)}: {inputs}\nOutputs {len(prediction)}: {prediction}\n\n")
 
-model.fit(inputs, targets)
-# print(f"Inputs: {inputs}\nOutputs: {model.forward(np.array(inputs))}")
+loss = model.fit(inputs, targets, epochs=2, batch_size=4, verbose=False)
+print(f"Model loss: {loss}")
+
+# prediction = model.forward(np.array(inputs))
+# print(f"Inputs {len(inputs)}: {inputs}\nOutputs {len(prediction)}: {prediction}\n\n")
