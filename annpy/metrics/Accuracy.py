@@ -12,15 +12,15 @@ class Accuracy(Metrics):
 
 		self.count += len([1 for predict, target in zip(prediction, targets) if np.array_equal(predict, target)])
 		self.total += len(prediction)
-		self.accuracy = self.count / self.total
 
 	def get_result(self):
 		return self.count / self.total
 
 	def reset(self):
+		accuracy = self.count / self.total
 		self.count = 0
 		self.total = 0
-		return self.accuracy
+		return accuracy
 
 	def summary(self):
 		print(f"Accuracy:\t{self} (Exact values tested)")
