@@ -30,7 +30,7 @@ class SGD(Optimizer):
 			weightsb[1] += self(gradients[2])
 
 	def summary(self):
-		print(f"Optimizer:\t{self}, lr={self.lr}")
+		print(f"Optimizer:\tannpy.optimizers.SGD, lr={self.lr}")
 
 	# def __str__(self):
 	# 	return "SGD"

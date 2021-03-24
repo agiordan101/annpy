@@ -2,6 +2,7 @@ import annpy
 import numpy as np
 from annpy.models.Model import Model
 from annpy.layers.Layer import Layer
+from annpy.metrics.Metric import metrics_data_to_str
 
 class Sequencial(Model):
 
@@ -67,7 +68,7 @@ class Sequencial(Model):
 
 		return inputs
 
-	def split_dataset(self, a, b, array_split):
+	def split_dataset(self, a, b, batch_split):
 
 		# Shuffle
 		seed = np.random.get_state()
@@ -76,8 +77,8 @@ class Sequencial(Model):
 		np.random.shuffle(b)
 
 		# Split batches
-		a = np.split(a, array_split)
-		b = np.split(b, array_split)
+		a = np.split(a, batch_split)
+		b = np.split(b, batch_split)
 
 		# Merge
 		return list(zip(a, b))
@@ -88,73 +89,73 @@ class Sequencial(Model):
 			batch_size=4,
 			epochs=420,
 			metrics=[],
-			# validation_features=None,
-			# validation_targets=None,
-			# k_fold_as_validation=False,
-			# k_fold_percent=0.2,
+			validation_features=None,
+			validation_targets=None,
+			test_features=None,
+			test_targets=None,
 			verbose=True):
 
-		# Dataset length
-		features_len = len(train_features)
+		super().fit(train_features, train_targets, batch_size, epochs, metrics, validation_features, validation_targets, test_features, test_targets, verbose)
 
-		# Batchs number
-		n_batch = features_len // batch_size + (1 if len(train_features) % batch_size else 0)
+		self.loss.reset()
+		for metric in self.metrics:
+			metric.hard_reset()
 
-		# Split index list
-		array_split = list(range(0, features_len, batch_size))[1:]
-
-		# print(f"vars {features_len} / {n_batch} / {array_split}")
-
-		loss = None
 		for epoch in range(epochs):
 
-			if verbose:
-				print(f"\n-------------------------")
-				print(f"EPOCH={epoch}/{epochs - 1}")
+			# if verbose:
+			# 	print(f"\n-------------------------")
+			# 	print(f"EPOCH={epoch}/{epochs - 1}\n")
 
 			# Dataset shuffle + split
-			batchs = self.split_dataset(train_features, train_targets, array_split)
+			batchs = self.split_dataset(train_features, train_targets, self.batch_split)
 
 			# print(list(batchs))
 			for step, data in enumerate(batchs):
 
-				features, targets = data
+				features, target = data
 				# print(f"data {data}")
-				if verbose:
-					print(f"-----------")
-					print(f"STEP={step}/{n_batch - 1}")
+				# if verbose:
+				# 	print(f"STEP={step}/{self.n_batch - 1}")
 					# print(f"features {features}")
-					# print(f"targets {targets}")
+					# print(f"target {target}")
 
 				# Prediction
 				prediction = self.forward(features)
 
-				# Loss
-				self.loss(prediction, targets)
+				# Loss actualisation
+				self.loss(prediction, target)
 
-				# Metrics
+				# Metrics actualisation
 				for metric in self.metrics:
-					metric(prediction, targets)
+					metric(prediction, target)
 
 				# Backpropagation
-				gradients = prediction - targets, 0, 0
-
+				gradients = self.loss.derivate(prediction, target), 0, 0
 				self.optimizer.gradients = []
 				for layer in self.sequence_rev:
 					# print(f"LAYER {layer.layer_index}")
 					gradients = layer.backward(gradients[0])
 					self.optimizer.gradients.append(gradients)
 
-				if verbose:
-					print(f"STEP {step}\n")
-
 				# Optimizer
 				self.optimizer.apply_gradients(self.weights)
 
-			loss = self.loss.reset()
-			print(f"EPOCH {epoch} -- loss: {loss} -- accuracy: ")
+			# Get total loss of this batch & reset vars
+			loss = self.loss.get_result()
+
+			# Get total metrics data of this batch & reset vars
+			metrics_log = metrics_data_to_str(self.metrics)
+
+			print(f"\n-------------------------")
+			print(f"EPOCH {epoch}/{epochs - 1}{metrics_log}")
+
+		# DO SOMETHING WITH METRICS DATA, graphs...
+		for metric in self.metrics:
+			metric.print_graph()
+			metric.hard_reset()
 		
-		return loss
+		return self.evaluate(self, self.test_features, self.test_targets, verbose=verbose)
 
 
 

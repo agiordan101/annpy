@@ -1,14 +1,14 @@
 from abc import ABCMeta, abstractmethod
 
-class Metrics(metaclass=ABCMeta):
-	
+class Loss(metaclass=ABCMeta):
+
 	def __init__(self):
-		self.total = 0
 		self.count = 0
+		self.total = 0
 		pass
 
 	@abstractmethod
-	def __call__(self):
+	def __call__(self, prediction, targets):
 		pass
 
 	@abstractmethod
@@ -22,3 +22,7 @@ class Metrics(metaclass=ABCMeta):
 	@abstractmethod
 	def summary(self):
 		pass
+
+	# @abstractmethod
+	# def __str__(self):
+	# 	return "Loss"

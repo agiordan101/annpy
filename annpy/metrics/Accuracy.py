@@ -1,26 +1,25 @@
 import numpy as np
-from annpy.metrics.Metrics import Metrics
+from annpy.metrics.Metric import Metric
 
-class Accuracy(Metrics):
+class Accuracy(Metric):
 	
 	def __init__(self):
 		super().__init__()
-		pass
 
-	def __call__(self, prediction, targets):
-		# (batch_size, output_neuron)
+	def get_obj_name(self):
+		return "Accuracy"
 
-		self.count += len([1 for predict, target in zip(prediction, targets) if np.array_equal(predict, target)])
-		self.total += len(prediction)
+	# Depend on child class
+	def accuracy_conditions(self, prediction, target):
+		return np.array_equal(prediction, target)
 
-	def get_result(self):
-		return self.count / self.total
+	# Depend on child class
+	def compute(self, predictions, targets):
+		return len([1 for prediction, target in zip(predictions, targets) if self.accuracy_conditions(prediction, target)])
 
-	def reset(self):
-		accuracy = self.count / self.total
-		self.count = 0
-		self.total = 0
-		return accuracy
+	def get_mem_len_append(self, predictions, targets):
+		return len(predictions)
 
 	def summary(self):
-		print(f"Accuracy:\t{self} (Exact values tested)")
+		print(f"Metric:\t\tannpy.accuracies.Accuracy, (Exact values tested)")
+

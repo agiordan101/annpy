@@ -28,7 +28,7 @@ model.add(annpy.layers.FullyConnected(4, activation="Sigmoid"))
 model.add(annpy.layers.FullyConnected(1, activation="Sigmoid"))
 model.compile(loss="MSE",
 				optimizer=annpy.optimizers.SGD(20),
-				metrics=["Accuracy"])
+				metrics=[annpy.metrics.RangeAccuracy([0.5, 0.5])])
 model.deepsummary()
 
 # output = [[1, 2, 3, 4, 5], [2, 2, 3, 3.9, 5.1]]
@@ -47,12 +47,8 @@ model.deepsummary()
 prediction = model.forward(np.array(inputs))
 print(f"PREDICTION ->\nInputs {len(inputs)}: {inputs}\nOutputs {len(prediction)}: {prediction}\nOutputs {len(targets)}: {targets}\n")
 
-loss = model.fit(inputs,
+loss, accuracy = model.fit(inputs,
 					targets,
-					epochs=42,
+					epochs=420,
 					batch_size=4,
 					verbose=False)
-print(f"Model loss: {loss}")
-
-prediction = model.forward(np.array(inputs))
-print(f"PREDICTION ->\nInputs {len(inputs)}: {inputs}\nOutputs {len(prediction)}: {prediction}\nOutputs {len(targets)}: {targets}\n\n")
