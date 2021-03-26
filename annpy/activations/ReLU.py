@@ -7,10 +7,10 @@ class ReLU(Activation):
 		pass
 
 	def __call__(self, x):
-		return np.where(x < 0, 0, x)
+		return np.where(x < 0, 0., x)
 
 	def derivate(self, x):
-		return x
+		return np.where(x < 0, 0., 1.)
 
 	# def __str__(self):
 	# 	return "ReLU"

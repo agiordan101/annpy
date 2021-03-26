@@ -20,8 +20,12 @@ class FullyConnected(Layer):
 		# Link last layer output
 
 		# self.weights = np.random.rand(input_shape + 1, self.output_shape)
-		self.weights = np.random.rand(input_shape, self.output_shape) * 2 - 1
-		self.bias = np.random.rand(self.output_shape) * 2 - 1
+		self.weights = np.random.rand(input_shape, self.output_shape)
+		self.bias = np.random.rand(self.output_shape)
+		# self.weights = np.random.rand(input_shape, self.output_shape) * 2 - 1
+		# self.bias = np.random.rand(self.output_shape) * 2 - 1
+		self.weights /= 3
+		self.bias /= 3
 		return [self.weights, self.bias]
 
 	def forward(self, inputs):
@@ -43,38 +47,39 @@ class FullyConnected(Layer):
 		"""
 		# print(f"BACKPROPAGATION")
 
-		# print(f"inputs T {self.inputs.T.shape}:\n{self.inputs.T}")
-		# print(f"weights {self.weights.shape}:\n{self.weights}")
-		# print(f"ws {self.ws.shape}:\n{self.ws}")
-		# print(f"activation {self.activation.shape}:\n{self.activation}")
+		print(f"inputs T {self.inputs.T.shape}:\n{self.inputs.T}")
+		print(f"weights {self.weights.shape}:\n{self.weights}")
+		print(f"ws {self.ws.shape}:\n{self.ws}")
+		print(f"activation {self.activation.shape}:\n{self.activation}")
 
-		# print(f"loss {loss.shape}:\n{loss}")
+		print(f"loss {loss.shape}:\n{loss}")
 		# d(error) / d(activation)
 		de = self.fa.derivate(self.ws)
-		# print(f"de {de.shape}:\n{de}")
+		print(f"de {de.shape}:\n{de}")
 
 		# d(activation) / d(weighted sum)
 		dfa = de * loss
 		# dfa = np.matmul(de.T, loss)
 		dfa_mean = np.mean(dfa, axis=0)
-		# print(f"dfa      {dfa.shape}:\n{dfa}")
+		print(f"dfa      {dfa.shape}:\n{dfa}")
 		# print(f"dfa T    {dfa.T.shape}:\n{dfa.T}")
-		# print(f"dfa mean {dfa_mean.shape}:\n{dfa_mean}")
+		print(f"dfa mean {dfa_mean.shape}:\n{dfa_mean}")
 
 		# d(weighted sum) / d(wi)
 		dw = np.matmul(self.inputs.T, dfa)		# (n_inputs, batch_size) * (batch_size, n_neurons) = (n_inputs, n_neurons)
 		# dw = self.inputs.T * dfa
-		# print(f"dw {dw.shape}:\n{dw}")
+		print(f"dw {dw.shape}:\n{dw}")
 
 		# d(weighted sum) / d(bias)
 		db = dfa_mean
-		# print(f"db {db.shape}:\n{db}")
+		print(f"db {db.shape}:\n{db}")
 
 		# d(weighted sum) / d(xi)
 		# dx = self.weights * np.mean(dfa, axis=0)
 		dx = np.matmul(self.weights, dfa.T)	# (n_inputs, n_neurons) * (n_neurons, batch_size) = (n_inputs, batch_size?)
 		# dx = np.mean(dfa, axis=0)
-		# print(f"dx {dx.shape}:\n{dx}")
+		print(f"dx {dx.shape}:\n{dx}")
+		exit(0)
 		return dx.T, dw, db
 
 	def summary(self):

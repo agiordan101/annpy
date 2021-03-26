@@ -139,8 +139,8 @@ class Sequencial(Model):
 				# Optimizer
 				self.optimizer.apply_gradients(self.weights)
 
-			# Get total loss of this batch & reset vars
-			loss = self.loss.get_result()
+			# # Get total loss of this batch & reset vars
+			# loss = self.loss.get_result()
 
 			# Get total metrics data of this batch & reset vars
 			metrics_log = metrics_data_to_str(self.metrics)

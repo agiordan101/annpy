@@ -42,6 +42,7 @@ class Metric(metaclass=ABCMeta):
 		result = self.get_result()
 		if not isinstance(result, float):
 			result = np.mean(result)
+		print(f"result {result}")
 		return f" -- {self.get_obj_name()}: {result}"
 
 	@abstractmethod

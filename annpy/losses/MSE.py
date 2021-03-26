@@ -10,7 +10,12 @@ class MSE(Loss):
 		return "MSE"
 
 	def compute(self, prediction, target):
-		return np.mean(np.square(target - prediction), axis=0)
+		ret = np.mean(np.mean(np.square(target - prediction), axis=0))
+		# print(f"prediction {prediction.shape}: {prediction}")
+		# print(f"target {target.shape}: {target}")
+		# print(f"MSE {ret.shape}: {ret}")
+		# exit(0)
+		return ret
 
 	def get_mem_len_append(self, predictions, targets):
 		return 1
