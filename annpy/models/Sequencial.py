@@ -91,11 +91,9 @@ class Sequencial(Model):
 			metrics=[],
 			validation_features=None,
 			validation_targets=None,
-			test_features=None,
-			test_targets=None,
 			verbose=True):
 
-		super().fit(train_features, train_targets, batch_size, epochs, metrics, validation_features, validation_targets, test_features, test_targets, verbose)
+		super().fit(train_features, train_targets, batch_size, epochs, metrics, validation_features, validation_targets, verbose)
 
 		self.loss.reset()
 		for metric in self.metrics:
@@ -155,7 +153,7 @@ class Sequencial(Model):
 			metric.print_graph()
 			metric.hard_reset()
 		
-		return self.evaluate(self, self.test_features, self.test_targets, verbose=verbose)
+		return self.evaluate(self, self.validation_features, self.validation_targets, verbose=verbose)
 
 
 

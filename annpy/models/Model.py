@@ -64,17 +64,11 @@ class Model():
 			metrics,
 			validation_features,
 			validation_targets,
-			test_features,
-			test_targets,
 			verbose):
 		
 		if validation_features is None:
 			self.validation_features = train_features
 			self.validation_targets = train_targets
-		
-		if test_features is None:
-			self.test_features = self.validation_features
-			self.test_targets = self.validation_targets
 
 		# Dataset length
 		self.features_len = len(train_features)

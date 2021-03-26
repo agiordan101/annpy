@@ -28,6 +28,7 @@ class FullyConnected(Layer):
 
 		# return self.activation(np.dot(self.weights, inputs))
 		# print(f"Inputs shape: {inputs.shape}")
+		# print(f"weights {self.weights.shape}:\n{self.weights}")
 
 		self.inputs = inputs
 		self.ws = np.dot(self.inputs, self.weights) + self.bias

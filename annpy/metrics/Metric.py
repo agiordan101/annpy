@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 
+import numpy as np
 import plotly.express as px
 import plotly.graph_objects as go
 
@@ -38,7 +39,10 @@ class Metric(metaclass=ABCMeta):
 		self.mem.append(count / total)
 
 	def __str__(self):
-		return f" -- {self.get_obj_name()}: {self.get_result()}"
+		result = self.get_result()
+		if not isinstance(result, float):
+			result = np.mean(result)
+		return f" -- {self.get_obj_name()}: {result}"
 
 	@abstractmethod
 	def get_obj_name(self):
