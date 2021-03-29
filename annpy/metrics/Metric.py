@@ -1,8 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
 import numpy as np
-import plotly.express as px
-# import plotly.graph_objects as go
+# import plotly.express as px
 
 def metrics_data_to_str(metrics_lst):
 
@@ -27,19 +26,6 @@ class Metric(metaclass=ABCMeta):
 	def compute(self, prediction, target):
 		pass
 
-	@abstractmethod
-	def get_mem_len_append(self, predictions, targets):
-		pass
-
-	def __call__(self, predictions, targets, update_mem=True):
-		count = self.compute(predictions, targets)
-		total = self.get_mem_len_append(predictions, targets)
-		self.count += count
-		self.total += total
-		if update_mem:
-			# self.mem.append(self.count / self.total)
-			self.mem.append(count / total)
-
 	def __str__(self):
 		result = self.get_result()
 		if not isinstance(result, float):
@@ -47,8 +33,24 @@ class Metric(metaclass=ABCMeta):
 		# print(f"result {result}")
 		return f" -- {self.get_obj_name()}: {result}"
 
+	def __call__(self, predictions, targets):
+	# def __call__(self, predictions, targets, update_mem=False):
+		count = self.compute(predictions, targets)
+		total = self.get_mem_len_append(predictions, targets)
+		self.count += count
+		self.total += total
+		# if update_mem:
+		# 	self.mem.append(count / total)
+
+	def save_result(self):
+		self.mem.append(self.get_result())
+
 	@abstractmethod
 	def get_obj_name(self):
+		pass
+
+	@abstractmethod
+	def get_mem_len_append(self, predictions, targets):
 		pass
 
 	def get_result(self):
@@ -57,12 +59,14 @@ class Metric(metaclass=ABCMeta):
 	def get_mem(self):
 		return self.mem
 
-	def reset(self):
+	def reset(self, save=True):
+		if save:
+			self.save_result()
 		self.count = 0
 		self.total = 0
 
 	def hard_reset(self):
-		self.reset()
+		self.reset(save=False)
 		self.mem = []
 
 	@abstractmethod

@@ -74,22 +74,18 @@ class Sequencial(Model):
 			train_targets,
 			batch_size=42,
 			epochs=420,
-			metrics=[],
+			callbacks=[],
 			valid_features=None,
 			valid_targets=None,
 			valid_percent=0.2,
 			verbose=True):
 
-		super().fit(train_features, train_targets, batch_size, epochs, metrics, valid_features, valid_targets, valid_percent, verbose)
+		super().fit(train_features, train_targets, batch_size, epochs, callbacks, valid_features, valid_targets, valid_percent, verbose)
 
 		for metric in self.metrics:
 			metric.hard_reset()
 
 		for epoch in range(epochs):
-
-			# if verbose:
-			# 	print(f"\n-------------------------")
-			# 	print(f"EPOCH={epoch}/{epochs - 1}\n")
 
 			# Dataset shuffle + split
 			batchs = super().split_dataset(train_features, train_targets, self.batch_split)
@@ -121,10 +117,11 @@ class Sequencial(Model):
 				# Optimizer
 				self.optimizer.apply_gradients(self.weights)
 
-			# # Get total loss of this batch & reset vars
-			# loss = self.loss.get_result()
+			# Save loss/accuracy of this epoch
+			# self.loss.save_result()
+			# self.accuracy.save_result()
 
-			# Get total metrics data of this batch & reset vars
+			# Get total metrics data of this epoch & reset vars
 			metrics_log = metrics_data_to_str(self.metrics)
 
 			print(f"\n-------------------------")

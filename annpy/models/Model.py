@@ -48,12 +48,12 @@ class Model():
 
 		predictions = model.forward(features)
 
-		self.loss.reset()
-		self.loss(predictions, targets, update_mem=False)
+		self.loss.reset(save=False)
+		self.loss(predictions, targets)
 		loss = self.loss.get_result()
 
-		self.accuracy.reset() # useless
-		self.accuracy(predictions, targets, update_mem=False)
+		self.accuracy.reset(save=False)
+		self.accuracy(predictions, targets)
 		accuracy = self.accuracy.get_result()
 
 		print(f"Model evaluation -- loss: {loss} -- accuracy: {accuracy}")
@@ -79,7 +79,7 @@ class Model():
 			train_targets,
 			batch_size,
 			epochs,
-			metrics,
+			callbacks,
 			valid_features,
 			valid_targets,
 			valid_percent,
