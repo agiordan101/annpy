@@ -1,5 +1,8 @@
 import annpy
 import numpy as np
+import pandas as pd
+import plotly.express as px
+
 from annpy.losses.Loss import Loss
 from annpy.metrics.Metric import Metric
 from annpy.metrics.Accuracy import Accuracy
@@ -82,12 +85,30 @@ class Model():
 	# def get_metrics_data(self):
 	# 	raise NotImplementedError
 
+	def print_graph(self, metrics=[]):
+
+		if not metrics:
+			metrics = self.metrics
+
+		data = {}
+		for metric in metrics:
+			data[metric.get_obj_name()] = metric.get_mem()
+			metric.hard_reset()
+
+		# for k, v in data.items():
+		# 	print(f"{k} {len(v)}:\n{v}")
+
+		data_df = pd.DataFrame(data)
+		fig = px.line(data_df)
+		fig.show()
+		# exit(0)
+
 	def summary(self, only_model_summary=True):
 
 		print(f"\n-------------------")
 		print(f"Summary of: {self.name}")
 		print(f"Input shape:  {self.input_shape}")
-		self.loss.summary()
+		# self.loss.summary()
 		self.optimizer.summary()
 		for metric in self.metrics:
 			metric.summary()

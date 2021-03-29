@@ -26,6 +26,5 @@ class MSE(Loss):
 	def summary(self):
 		print(f"Loss:\t\tannpy.losses.MSE")
 
-
 	# def __str__(self):
 	# 	return "MSE"

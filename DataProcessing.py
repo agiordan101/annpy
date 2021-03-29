@@ -77,9 +77,9 @@ class DataProcessing():
 
 		if self.normalization_data:
 			
-			for item, data in zip(self.features.items(), self.normalization_data):
+			for (feature, column), (_min, _max) in zip(self.features.items(), self.normalization_data):
 				# new_lst.append([(x - data[0]) / (data[1] - data[0]) for x in item[1].values])
-				data[item[0]] = [(x - _min) / (_max - _min) if isinstance(x, float) else x for x in column.values]
+				data[feature] = [(x - _min) / (_max - _min) if isinstance(x, float) else x for x in column]
 
 		else:
 			for feature, column in self.features.items():
@@ -98,7 +98,7 @@ class DataProcessing():
 
 		features = np.array([np.array(features) for features in zip(*list(self.features.values()))])
 		if binary_targets:
-			targets = self.binary_targets_to_np(*binary_targets)
+			targets = self.binary_targets_to_np(binary_targets[0], binary_targets[1])
 		else:
 			targets = np.array(self.targets)
 		return features, targets

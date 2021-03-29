@@ -1,5 +1,6 @@
 import annpy
 import numpy as np
+
 from annpy.models.Model import Model
 from annpy.layers.Layer import Layer
 from annpy.metrics.Metric import metrics_data_to_str
@@ -86,7 +87,7 @@ class Sequencial(Model):
 	def fit(self,
 			train_features,
 			train_targets,
-			batch_size=4,
+			batch_size=42,
 			epochs=420,
 			metrics=[],
 			validation_features=None,
@@ -122,9 +123,9 @@ class Sequencial(Model):
 				prediction = self.forward(features)
 
 				# Loss actualisation
-				self.loss(prediction, target)
+				# self.loss(prediction, target)
 
-				# Metrics actualisation
+				# Metrics actualisation (Loss actualisation too)
 				for metric in self.metrics:
 					metric(prediction, target)
 
@@ -148,11 +149,8 @@ class Sequencial(Model):
 			print(f"\n-------------------------")
 			print(f"EPOCH {epoch}/{epochs - 1}{metrics_log}")
 
-		# DO SOMETHING WITH METRICS DATA, graphs...
-		for metric in self.metrics:
-			metric.print_graph()
-			metric.hard_reset()
-		
+		self.print_graph()
+
 		return self.evaluate(self, self.validation_features, self.validation_targets, verbose=verbose)
 
 

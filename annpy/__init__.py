@@ -5,6 +5,7 @@ import annpy.optimizers
 import annpy.metrics
 import annpy.losses
 import annpy.utils
+import annpy.initializers
 
 """
 Rules to follow due to circular imports:

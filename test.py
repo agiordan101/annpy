@@ -6,8 +6,8 @@ import numpy as np
 
 def get_model():
 	model = annpy.models.Sequencial(input_shape=29, name="First model")
-	model.add(annpy.layers.FullyConnected(60, activation="ReLU"))
-	model.add(annpy.layers.FullyConnected(30, activation="ReLU"))
+	model.add(annpy.layers.FullyConnected(40, activation="ReLU"))
+	model.add(annpy.layers.FullyConnected(20, activation="ReLU"))
 	model.add(annpy.layers.FullyConnected(2, activation="Sigmoid"))
 	model.compile(loss="MSE",
 					optimizer=annpy.optimizers.SGD(0.1),
@@ -27,14 +27,14 @@ features, targets = data.get_data(binary_targets=['B', 'M'])
 
 print(f"features normalized:\n{type(features)} / {len(features[0])}")
 print(f"targets normalized:\n{type(targets)} / {len(targets)}")
-# exit(0)
 model = get_model()
+# exit(0)
 model.deepsummary()
 
 loss, accuracy = model.fit(features,
 					targets,
-					epochs=20,
-					batch_size=42,
+					epochs=200,
+					batch_size=100,
 					verbose=True)
 
 
