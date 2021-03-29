@@ -30,16 +30,16 @@ class Model():
 		# Add loss to metrics
 		self.metrics = [self.loss]
 
-		# Save in accuracy_metric the first metric to inherite from Accuracy
-		self.accuracy_metric = None
+		# Save in accuracy the first metric to inherite from Accuracy
+		self.accuracy = None
 		for metric in metrics:
 			self.metrics.append(annpy.utils.parse.parse_object(metric, Metric)) # Autoriser les string pour les metrics ?? Compatibilite dans le fit / parse ?
 
-			if not self.accuracy_metric and issubclass(type(self.metrics[-1]), Accuracy):
-				self.accuracy_metric = self.metrics[-1]
+			if not self.accuracy and issubclass(type(self.metrics[-1]), Accuracy):
+				self.accuracy = self.metrics[-1]
 
-		if not self.accuracy_metric:
-			self.accuracy_metric = Accuracy()
+		if not self.accuracy:
+			self.accuracy = Accuracy()
 
 	def forward(self):
 		raise NotImplementedError
@@ -49,15 +49,30 @@ class Model():
 		predictions = model.forward(features)
 
 		self.loss.reset()
-		self.loss(predictions, targets)
+		self.loss(predictions, targets, update_mem=False)
 		loss = self.loss.get_result()
 
-		self.accuracy_metric.reset() # useless
-		self.accuracy_metric(predictions, targets)
-		accuracy = self.accuracy_metric.get_result()
+		self.accuracy.reset() # useless
+		self.accuracy(predictions, targets, update_mem=False)
+		accuracy = self.accuracy.get_result()
 
 		print(f"Model evaluation -- loss: {loss} -- accuracy: {accuracy}")
 		return loss, accuracy
+
+	def split_dataset(self, a, b, batch_split):
+
+		# Shuffle
+		seed = np.random.get_state()
+		np.random.shuffle(a)
+		np.random.set_state(seed)
+		np.random.shuffle(b)
+
+		# Split batches
+		a = np.split(a, batch_split)
+		b = np.split(b, batch_split)
+
+		# Merge
+		return list(zip(a, b))
 
 	def fit(self,
 			train_features,
@@ -65,22 +80,29 @@ class Model():
 			batch_size,
 			epochs,
 			metrics,
-			validation_features,
-			validation_targets,
+			valid_features,
+			valid_targets,
+			valid_percent,
 			verbose):
-		
-		if validation_features is None:
-			self.validation_features = train_features
-			self.validation_targets = train_targets
 
-		# Dataset length
-		self.features_len = len(train_features)
+		if valid_features is None:
+
+			# Split dataset in 2 -> New train dataset & validation dataset
+			datasets = self.split_dataset(train_features, train_targets, [int(valid_percent * len(train_features))])
+
+			self.valid_features = datasets[0][0]
+			self.valid_targets = datasets[0][1]
+			self.train_features = datasets[1][0]
+			self.train_targets = datasets[1][1]
+
+		# Train dataset length
+		self.ds_train_len = len(self.train_features)
 
 		# Batchs number
-		self.n_batch = self.features_len // batch_size + (1 if len(train_features) % batch_size else 0)
+		self.n_batch = self.ds_train_len // batch_size + (1 if self.ds_train_len % batch_size else 0)
 
 		# Split dataset into <n_batch> batch of len <batch_size>
-		self.batch_split = list(range(0, self.features_len, batch_size))[1:]
+		self.batch_split = list(range(0, self.ds_train_len, batch_size))[1:]
 
 	# def get_metrics_data(self):
 	# 	raise NotImplementedError
@@ -106,13 +128,11 @@ class Model():
 	def summary(self, only_model_summary=True):
 
 		print(f"\n-------------------")
-		print(f"Summary of: {self.name}")
-		print(f"Input shape:  {self.input_shape}")
-		# self.loss.summary()
+		print(f"Summary of:\t{self.name}")
+
 		self.optimizer.summary()
 		for metric in self.metrics:
 			metric.summary()
 
 		if only_model_summary:
 			print(f"-------------------\n")
-

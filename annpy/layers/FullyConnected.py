@@ -9,8 +9,8 @@ class FullyConnected(Layer):
 					output_shape,
 					input_shape=None,
 					activation=Linear,
-					kernel_initializer='LecunUniform',
-					bias_initializer='LecunUniform',
+					kernel_initializer='GlorotUniform',
+					bias_initializer='Zeros',
 					name="Default layers name"):
 
 		super().__init__(output_shape, input_shape, activation, kernel_initializer, bias_initializer, name)
@@ -23,11 +23,18 @@ class FullyConnected(Layer):
 		# self.bias = np.random.rand(self.output_shape)
 
 		self.kernel_shape = (input_shape, self.output_shape)
-		self.weights = self.kernel_initializer(self.kernel_shape, input_shape)
-		self.bias = self.bias_initializer(self.bias_shape, input_shape)
-
-		# print(f"weights {self.weights.shape}:\n{self.weights}")
-		# print(f"bias {self.bias.shape}:\n{self.bias}")
+		self.weights = self.kernel_initializer(
+			self.kernel_shape,
+			input_shape=input_shape,
+			output_shape=self.output_shape
+		)
+		self.bias = self.bias_initializer(
+			self.bias_shape,
+			input_shape=input_shape,
+			output_shape=self.output_shape
+		)
+		# print(f"weights {self.weights.shape} / type {type(self.weights[0][0])} :\n{self.weights}")
+		# print(f"bias {self.bias.shape} / type {type(self.bias[0])} :\n{self.bias}")
 		# exit(0)
 		return [self.weights, self.bias]
 
@@ -101,5 +108,8 @@ class FullyConnected(Layer):
 	def summary(self):
 
 		# print(f"FCLayer: shape={self.weights.shape}, activation={self.activation}")
-		print(f"FCLayer {self.layer_index}: shape={self.weights.shape} + {self.bias.shape}, activation={self.fa}")
-		# print(f"weights {self.weights}")
+		print(f"FCLayer {self.layer_index}: shape={self.weights.shape} + {self.bias.shape}")
+		print(f"\tactivation = {self.fa},")
+		print(f"\tkernel_initializer = {self.kernel_initializer},")
+		print(f"\tbias_initializer = {self.bias_initializer}")
+		print()

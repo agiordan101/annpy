@@ -53,9 +53,9 @@ class Model():
 	def fit(self,
 			features,
 			targets,
-			validation_features=None,
-			validation_targets=None,
-			k_fold_as_validation=False,
+			valid_features=None,
+			valid_targets=None,
+			k_fold_as_valid=False,
 			k_fold_percent=0.2):
 
 		prediction = self.forward(features)

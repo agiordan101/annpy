@@ -7,18 +7,28 @@ from annpy.activations.Linear import Linear
 from annpy.activations.Sigmoid import Sigmoid
 from annpy.initializers.LecunNormal import LecunNormal
 from annpy.initializers.LecunUniform import LecunUniform
+from annpy.initializers.GlorotNormal import GlorotNormal
+from annpy.initializers.GlorotUniform import GlorotUniform
 from annpy.initializers.RandomNormal import RandomNormal
 from annpy.initializers.RandomUniform import RandomUniform
+from annpy.initializers.Ones import Ones
+from annpy.initializers.Zeros import Zeros
 
+# Only objects that don't need arguments in __init__() can be past
+# If not, Object need to be past, not String
 objects = {
 	'mse': MSE,
 	'sgd': SGD,
 	'relu': ReLU,
+	'ones': Ones,
+	'zeros': Zeros,
 	'linear': Linear,
 	'sigmoid': Sigmoid,
 	'accuracy': Accuracy,
 	'lecunnormal': LecunNormal,
 	'lecununiform': LecunUniform,
+	'glorotnormal': GlorotNormal,
+	'glorotuniform': GlorotUniform,
 	'randomnormal': RandomNormal,
 	'randomuniform': RandomUniform,
 }

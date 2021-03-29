@@ -69,34 +69,19 @@ class Sequencial(Model):
 
 		return inputs
 
-	def split_dataset(self, a, b, batch_split):
-
-		# Shuffle
-		seed = np.random.get_state()
-		np.random.shuffle(a)
-		np.random.set_state(seed)
-		np.random.shuffle(b)
-
-		# Split batches
-		a = np.split(a, batch_split)
-		b = np.split(b, batch_split)
-
-		# Merge
-		return list(zip(a, b))
-
 	def fit(self,
 			train_features,
 			train_targets,
 			batch_size=42,
 			epochs=420,
 			metrics=[],
-			validation_features=None,
-			validation_targets=None,
+			valid_features=None,
+			valid_targets=None,
+			valid_percent=0.2,
 			verbose=True):
 
-		super().fit(train_features, train_targets, batch_size, epochs, metrics, validation_features, validation_targets, verbose)
+		super().fit(train_features, train_targets, batch_size, epochs, metrics, valid_features, valid_targets, valid_percent, verbose)
 
-		self.loss.reset()
 		for metric in self.metrics:
 			metric.hard_reset()
 
@@ -107,27 +92,23 @@ class Sequencial(Model):
 			# 	print(f"EPOCH={epoch}/{epochs - 1}\n")
 
 			# Dataset shuffle + split
-			batchs = self.split_dataset(train_features, train_targets, self.batch_split)
+			batchs = super().split_dataset(train_features, train_targets, self.batch_split)
 
 			# print(list(batchs))
 			for step, data in enumerate(batchs):
 
 				features, target = data
-				# print(f"data {data}")
-				# if verbose:
-				# 	print(f"STEP={step}/{self.n_batch - 1}")
-					# print(f"features {features}")
-					# print(f"target {target}")
 
 				# Prediction
 				prediction = self.forward(features)
 
-				# Loss actualisation
-				# self.loss(prediction, target)
-
 				# Metrics actualisation (Loss actualisation too)
 				for metric in self.metrics:
 					metric(prediction, target)
+
+				if verbose:
+					print(f"STEP={step}/{self.n_batch - 1}")
+					# print(f"STEP={step}/{self.n_batch - 1}\tloss: {self.loss.get_result()}")
 
 				# Backpropagation
 				gradients = self.loss.derivate(prediction, target), 0, 0
@@ -151,7 +132,7 @@ class Sequencial(Model):
 
 		self.print_graph()
 
-		return self.evaluate(self, self.validation_features, self.validation_targets, verbose=verbose)
+		return super().evaluate(self, self.valid_features, self.valid_targets, verbose=verbose)
 
 
 
@@ -159,7 +140,8 @@ class Sequencial(Model):
 		
 		super().summary(only_model_summary=only_model_summary)
 
-		print(f"Output shape: {self.sequence[-1].output_shape}\n")
+		print(f"Input shape:\t{self.input_shape}")
+		print(f"Output shape:\t{self.sequence[-1].output_shape}\n")
 		for layer in self.sequence:
 			layer.summary()
 

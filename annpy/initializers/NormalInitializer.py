@@ -7,7 +7,7 @@ class NormalInitializer(Initializer):
 		self.mean = mean
 		self.stddev = stddev
 
-	def __call__(self, shape):
+	def __call__(self, shape, **kwargs):
 		# print(f"kernel/bias init shape {shape}")
 		return np.random.normal(
 			loc=self.mean,

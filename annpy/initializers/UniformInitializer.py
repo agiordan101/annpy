@@ -7,7 +7,7 @@ class UniformInitializer(Initializer):
 		self.min = min_val
 		self.max = max_val
 
-	def __call__(self, shape):
+	def __call__(self, shape, **kwargs):
 		# print(f"kernel/bias init shape {shape}")
 		return np.random.uniform(
 			low=self.min,

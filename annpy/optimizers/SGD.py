@@ -7,11 +7,13 @@ class SGD(Optimizer):
 
 	def __call__(self, deriv):
 		# print(f"weights {weights.shape}:\n{weights}")
-		ret = -self.lr * deriv
+		# ret = -self.lr * deriv
 		# ret = weights - self.lr * deriv
 		# print(f"Shapes: {weights.shape} - {self.lr} * {deriv.shape} = {ret.shape}")
-		return ret
+		# return ret
+		return -self.lr * deriv
 
+	# Method a passe dans lobject optimizer ? Clairement
 	def apply_gradients(self, weights_lst):
 		# weights_lst:	[[w0, b0], [..., ...], [wn, bn]]
 		# gradients:	[(dx, dw, db), ...]
@@ -21,8 +23,8 @@ class SGD(Optimizer):
 			# print(f"")
 			# print(f"Shapes w {weightsb[0].shape}:\n{weightsb[0]})")
 			# print(f"Shapes b {weightsb[1].shape}:\n{weightsb[1]})")
-			# print(f"Shapes dw {gradients[1].shape}:\n{gradients[1]})")
-			# print(f"Shapes db {gradients[2].shape}:\n{gradients[2]})")
+			# print(f"Shapes dw {gradients[1].shape} / type {type(gradients[1][0][0])}:\n{gradients[1]}")
+			# print(f"Shapes db {gradients[2].shape} / type {type(gradients[2][0])}:\n{gradients[2]}")
 			# weightsb[0] = None
 			# weightsb[1] = None
 

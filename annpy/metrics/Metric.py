@@ -37,6 +37,7 @@ class Metric(metaclass=ABCMeta):
 		self.count += count
 		self.total += total
 		if update_mem:
+			# self.mem.append(self.count / self.total)
 			self.mem.append(count / total)
 
 	def __str__(self):

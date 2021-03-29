@@ -4,14 +4,65 @@ import annpy
 from DataProcessing import DataProcessing
 import numpy as np
 
+# def get_model():
+
+# 	model = annpy.models.Sequencial(input_shape=29, name="First model")
+# 	model.add(annpy.layers.FullyConnected(
+# 		40,
+# 		activation="ReLU",
+# 		kernel_initializer='LecunUniform',
+# 		bias_initializer='Zeros'
+# 	))
+# 	model.add(annpy.layers.FullyConnected(
+# 		25,
+# 		activation="ReLU",
+# 		kernel_initializer='LecunNormal',
+# 		bias_initializer='Ones'
+# 	))
+# 	model.add(annpy.layers.FullyConnected(
+# 		10,
+# 		activation="ReLU",
+# 		kernel_initializer='RandomUniform',
+# 		bias_initializer='RandomNormal'
+# 	))
+# 	model.add(annpy.layers.FullyConnected(
+# 		2,
+# 		activation="Sigmoid",
+# 		kernel_initializer='GlorotUniform',
+# 		bias_initializer='GlorotNormal'
+# 	))
+# 	model.compile(
+# 		loss="MSE",
+# 		optimizer="SGD",
+# 		# optimizer=annpy.optimizers.SGD(),
+# 		metrics=[annpy.metrics.RangeAccuracy([0.5, 0.5])]
+# 	)
+# 	return model
 def get_model():
+
 	model = annpy.models.Sequencial(input_shape=29, name="First model")
-	model.add(annpy.layers.FullyConnected(40, activation="ReLU"))
-	model.add(annpy.layers.FullyConnected(20, activation="ReLU"))
-	model.add(annpy.layers.FullyConnected(2, activation="Sigmoid"))
-	model.compile(loss="MSE",
-					optimizer=annpy.optimizers.SGD(0.1),
-					metrics=[annpy.metrics.RangeAccuracy([0.5, 0.5])])
+	model.add(annpy.layers.FullyConnected(
+		40,
+		activation="ReLU",
+	))
+	model.add(annpy.layers.FullyConnected(
+		25,
+		activation="ReLU",
+	))
+	model.add(annpy.layers.FullyConnected(
+		10,
+		activation="ReLU",
+	))
+	model.add(annpy.layers.FullyConnected(
+		2,
+		activation="Sigmoid",
+	))
+	model.compile(
+		loss="MSE",
+		optimizer="SGD",
+		# optimizer=annpy.optimizers.SGD(),
+		metrics=[annpy.metrics.RangeAccuracy([0.5, 0.5])]
+	)
 	return model
 
 if len(sys.argv) < 2:
@@ -25,29 +76,12 @@ data.parse_dataset(dataset_path="ressources/data.csv",
 data.normalize()
 features, targets = data.get_data(binary_targets=['B', 'M'])
 
-print(f"features normalized:\n{type(features)} / {len(features[0])}")
-print(f"targets normalized:\n{type(targets)} / {len(targets)}")
 model = get_model()
-# exit(0)
-model.deepsummary()
+model.summary()
+# model.deepsummary()
 
 loss, accuracy = model.fit(features,
 					targets,
-					epochs=200,
-					batch_size=100,
+					epochs=100,
+					batch_size=42,
 					verbose=True)
-
-
-# prediction = model.forward(np.array(inputs))
-# print(f"PREDICTION ->\nInputs {len(inputs)}: {inputs}\nOutputs {len(prediction)}: {prediction}\nOutputs {len(targets)}: {targets}\n")
-
-# XOR test
-# inputs = np.array([[0, 0]])
-# targets = np.array([[0]])
-
-# inputs = np.array([[0, 0],
-# 					[0, 1],
-# 					[1, 0]])
-# targets = np.array([[0],
-# 					[1],
-# 					[1]])
