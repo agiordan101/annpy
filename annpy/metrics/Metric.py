@@ -34,13 +34,10 @@ class Metric(metaclass=ABCMeta):
 		return f" -- {self.get_obj_name()}: {result}"
 
 	def __call__(self, predictions, targets):
-	# def __call__(self, predictions, targets, update_mem=False):
 		count = self.compute(predictions, targets)
 		total = self.get_mem_len_append(predictions, targets)
 		self.count += count
 		self.total += total
-		# if update_mem:
-		# 	self.mem.append(count / total)
 
 	def save_result(self):
 		self.mem.append(self.get_result())

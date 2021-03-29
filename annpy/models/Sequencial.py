@@ -121,7 +121,7 @@ class Sequencial(Model):
 			# self.loss.save_result()
 			# self.accuracy.save_result()
 
-			# Get total metrics data of this epoch & reset vars
+			# Get/save total metrics data of this epoch & reset vars
 			metrics_log = metrics_data_to_str(self.metrics)
 
 			print(f"\n-------------------------")
