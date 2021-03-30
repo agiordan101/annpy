@@ -5,9 +5,7 @@ class Accuracy(Metric):
 	
 	def __init__(self):
 		super().__init__()
-
-	def get_obj_name(self):
-		return "Accuracy"
+		self.name = "Accuracy"
 
 	# Depend on child class
 	def accuracy_conditions(self, prediction, target):

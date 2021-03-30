@@ -6,6 +6,7 @@ import annpy.metrics
 import annpy.losses
 import annpy.utils
 import annpy.initializers
+import annpy.callbacks
 
 """
 Rules to follow due to circular imports:

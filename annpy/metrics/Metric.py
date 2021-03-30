@@ -1,37 +1,24 @@
+import copy
 from abc import ABCMeta, abstractmethod
 
-import numpy as np
-# import plotly.express as px
-
-def metrics_data_to_str(metrics_lst):
-
-	metrics_log = ""
-	for metric in metrics_lst:
-		# print(metric.get_obj_name())
-		# print(metric.count)
-		# print(metric.total)
-		metrics_log += str(metric)
-		metric.reset()
-	return metrics_log
-
+# Kwargs is necessary in @abstractmethod because some childs metrics would not take arguments of other metrics
 class Metric(metaclass=ABCMeta):
 
-	@abstractmethod
 	def __init__(self):
 		self.count = 0
 		self.total = 0
 		self.mem = []
-
-	@abstractmethod
-	def compute(self, prediction, target):
-		pass
+		self.name = None
 
 	def __str__(self):
-		result = self.get_result()
-		if not isinstance(result, float):
-			result = np.mean(result)
-		# print(f"result {result}")
-		return f" -- {self.get_obj_name()}: {result}"
+		return self.name
+
+	def set_name(self, name):
+		self.name = name
+		return self
+
+	def log(self):
+		return f"-- {str(self)}: {self.get_result()} "
 
 	def __call__(self, predictions, targets):
 		count = self.compute(predictions, targets)
@@ -43,20 +30,22 @@ class Metric(metaclass=ABCMeta):
 		self.mem.append(self.get_result())
 
 	@abstractmethod
-	def get_obj_name(self):
+	def compute(self, **kwargs):
 		pass
 
 	@abstractmethod
-	def get_mem_len_append(self, predictions, targets):
+	def get_mem_len_append(self, **kwargs):
 		pass
 
 	def get_result(self):
+		if self.total == 0:
+			return self.mem[-1]
 		return self.count / self.total
 
 	def get_mem(self):
 		return self.mem
 
-	def reset(self, save=True):
+	def reset(self, save):
 		if save:
 			self.save_result()
 		self.count = 0
@@ -67,12 +56,16 @@ class Metric(metaclass=ABCMeta):
 		self.mem = []
 
 	@abstractmethod
-	def summary(self):
+	def summary(self, **kwargs):
 		pass
 
-	# def print_graph(self):
-	# 	print(f"{self.get_obj_name()} {len(self.mem)}: {self.mem}")
-	# 	# fig = px.line(self.mem, x=list(range(len(self.mem))), y=self.mem)
-	# 	# fig = px.line(self.mem, x="epochs", y=self.get_obj_name())
-	# 	fig = px.line(self.mem)
-	# 	fig.show()
+	def copy(self):
+		return copy.deepcopy(self)
+
+	def append_into(self, metrics, val_duplication=True):
+
+		metrics[str(self)] = self
+
+		if val_duplication:
+			cpy = self.copy().set_name('val_' + str(self))
+			metrics[str(cpy)] = cpy

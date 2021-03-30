@@ -42,15 +42,11 @@ def get_model():
 
 	model = annpy.models.Sequencial(input_shape=29, name="First model")
 	model.add(annpy.layers.FullyConnected(
-		40,
+		30,
 		activation="ReLU",
 	))
 	model.add(annpy.layers.FullyConnected(
-		25,
-		activation="ReLU",
-	))
-	model.add(annpy.layers.FullyConnected(
-		10,
+		15,
 		activation="ReLU",
 	))
 	model.add(annpy.layers.FullyConnected(
@@ -80,8 +76,25 @@ model = get_model()
 model.summary()
 # model.deepsummary()
 
-loss, accuracy = model.fit(features,
-					targets,
-					epochs=100,
-					batch_size=42,
-					verbose=True)
+loss, accuracy = model.fit(
+	features,
+	targets,
+	epochs=500,
+	batch_size=100,
+	callbacks=[
+		annpy.callbacks.EarlyStopping(
+			monitor='val_MSE',
+			patience=10,
+			min_delta=0.0001,
+			mode='min'
+		)
+	],
+	verbose=True
+)
+
+# loss, accuracy = model.fit(
+# 	features,
+# 	targets,
+# 	epochs=50,
+# 	verbose=True
+# )

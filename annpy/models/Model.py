@@ -15,64 +15,63 @@ class Model():
 		self.name = name
 		self.input_shape = input_shape
 		self.weights = None
+
+		self.metrics = {}
 		self.loss = None
 		self.optimizer = None
 
-	# @abstractmethod
-	# def __str__(self):
-	# 	return "Model"
+		self.stop_trainning = False
+
+	def __str__(self):
+		raise NotImplementedError
 
 	def compile(self, loss, optimizer, metrics):
-		# self.loss = annpy.utils.parse.parse_object(loss, annpy.losses.Loss.Loss)
-		self.loss = annpy.utils.parse.parse_object(loss, Loss)
+
 		self.optimizer = annpy.utils.parse.parse_object(optimizer, Optimizer)
 
 		# Add loss to metrics
-		self.metrics = [self.loss]
+		self.loss = annpy.utils.parse.parse_object(loss, Loss)
+		self.loss.append_into(self.metrics)
 
 		# Save in accuracy the first metric to inherite from Accuracy
 		self.accuracy = None
-		for metric in metrics:
-			self.metrics.append(annpy.utils.parse.parse_object(metric, Metric)) # Autoriser les string pour les metrics ?? Compatibilite dans le fit / parse ?
 
-			if not self.accuracy and issubclass(type(self.metrics[-1]), Accuracy):
-				self.accuracy = self.metrics[-1]
+		for metric in metrics:
+			metric = annpy.utils.parse.parse_object(metric, Metric)
+			metric.append_into(self.metrics)
+
+			if not self.accuracy and issubclass(type(metric), Accuracy):
+				self.accuracy = metric
 
 		if not self.accuracy:
 			self.accuracy = Accuracy()
+			self.accuracy.append_into(self.metrics)
+
+		print(self.metrics)
+
 
 	def forward(self):
 		raise NotImplementedError
 	
-	def evaluate(self, model, features, targets, verbose=True):
+	def evaluate(self, model, features, target, verbose=True):
 
-		predictions = model.forward(features)
+		prediction = model.forward(features)
 
-		self.loss.reset(save=False)
-		self.loss(predictions, targets)
-		loss = self.loss.get_result()
+		# self.loss.reset(save=False)
+		# self.loss(predictions, targets)
+		# loss = self.loss.get_result()
 
-		self.accuracy.reset(save=False)
-		self.accuracy(predictions, targets)
-		accuracy = self.accuracy.get_result()
+		# self.accuracy.reset(save=False)
+		# self.accuracy(predictions, targets)
+		# accuracy = self.accuracy.get_result()
 
-		print(f"Model evaluation -- loss: {loss} -- accuracy: {accuracy}")
-		return loss, accuracy
+		# Metrics actualisation (Loss actualisation too)
+		for metric in self.metrics.values():
+			if 'val_' in metric.name:
+				metric.reset(save=False)
+				metric(prediction, target)
 
-	def split_dataset(self, a, b, batch_split):
-
-		# Shuffle
-		seed = np.random.get_state()
-		np.random.shuffle(a)
-		np.random.set_state(seed)
-		np.random.shuffle(b)
-
-		# Split batches
-		a = np.split(a, batch_split)
-		b = np.split(b, batch_split)
-
-		# Merge
-		return list(zip(a, b))
+		return self.loss.get_result(), self.accuracy.get_result()
 
 	def fit(self,
 			train_features,
@@ -86,7 +85,6 @@ class Model():
 			verbose):
 
 		if valid_features is None:
-
 			# Split dataset in 2 -> New train dataset & validation dataset
 			datasets = self.split_dataset(train_features, train_targets, [int(valid_percent * len(train_features))])
 
@@ -104,26 +102,47 @@ class Model():
 		# Split dataset into <n_batch> batch of len <batch_size>
 		self.batch_split = list(range(0, self.ds_train_len, batch_size))[1:]
 
-	# def get_metrics_data(self):
-	# 	raise NotImplementedError
+		for metric in self.metrics.values():
+			metric.hard_reset()
+
+
+	def get_metrics_logs(self):
+		return ''.join([metric.log() for metric in self.metrics.values()])
+
+	def reset_metrics(self, save):
+		for metric in self.metrics.values():
+			metric.reset(save)
+
+	def split_dataset(self, a, b, batch_split):
+
+		# Shuffle
+		seed = np.random.get_state()
+		np.random.shuffle(a)
+		np.random.set_state(seed)
+		np.random.shuffle(b)
+
+		# Split batches
+		a = np.split(a, batch_split)
+		b = np.split(b, batch_split)
+
+		# Merge
+		return list(zip(a, b))
 
 	def print_graph(self, metrics=[]):
 
-		if not metrics:
-			metrics = self.metrics
+		if metrics:
+			metrics = [self.metrics[metric_name] for metric_name in metrics]
+		else:
+			metrics = list(self.metrics.values())
 
 		data = {}
 		for metric in metrics:
-			data[metric.get_obj_name()] = metric.get_mem()
-			metric.hard_reset()
-
-		# for k, v in data.items():
-		# 	print(f"{k} {len(v)}:\n{v}")
+			data[str(metric)] = metric.get_mem()
 
 		data_df = pd.DataFrame(data)
 		fig = px.line(data_df)
 		fig.show()
-		# exit(0)
+
 
 	def summary(self, only_model_summary=True):
 
@@ -131,7 +150,7 @@ class Model():
 		print(f"Summary of:\t{self.name}")
 
 		self.optimizer.summary()
-		for metric in self.metrics:
+		for metric in self.metrics.values():
 			metric.summary()
 
 		if only_model_summary:

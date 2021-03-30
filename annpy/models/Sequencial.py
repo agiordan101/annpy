@@ -3,7 +3,7 @@ import numpy as np
 
 from annpy.models.Model import Model
 from annpy.layers.Layer import Layer
-from annpy.metrics.Metric import metrics_data_to_str
+# from annpy.metrics.Metric import metrics_data_to_str
 
 class Sequencial(Model):
 
@@ -19,8 +19,8 @@ class Sequencial(Model):
 		else:
 			self.sequence = []
 
-	# def __str__(self):
-	# 	return "Sequential"
+	def __str__(self):
+		return "Sequential"
 
 	def add(self, obj):
 		if issubclass(type(obj), Layer):
@@ -80,12 +80,19 @@ class Sequencial(Model):
 			valid_percent=0.2,
 			verbose=True):
 
+		# Callbacks TRAIN begin
+		for cb in callbacks:
+			cb.on_train_begin(model=self)
+
 		super().fit(train_features, train_targets, batch_size, epochs, callbacks, valid_features, valid_targets, valid_percent, verbose)
 
-		for metric in self.metrics:
-			metric.hard_reset()
-
 		for epoch in range(epochs):
+
+			print(f"EPOCH {epoch}")
+
+			# Callbacks EPOCH begin
+			for cb in callbacks:
+				cb.on_epoch_begin()
 
 			# Dataset shuffle + split
 			batchs = super().split_dataset(train_features, train_targets, self.batch_split)
@@ -93,14 +100,19 @@ class Sequencial(Model):
 			# print(list(batchs))
 			for step, data in enumerate(batchs):
 
+				# Callbacks BATCH begin
+				for cb in callbacks:
+					cb.on_batch_begin()
+
 				features, target = data
 
 				# Prediction
 				prediction = self.forward(features)
 
 				# Metrics actualisation (Loss actualisation too)
-				for metric in self.metrics:
-					metric(prediction, target)
+				for metric in self.metrics.values():
+					if 'val_' not in metric.name:
+						metric(prediction, target)
 
 				if verbose:
 					print(f"STEP={step}/{self.n_batch - 1}")
@@ -117,23 +129,39 @@ class Sequencial(Model):
 				# Optimizer
 				self.optimizer.apply_gradients(self.weights)
 
-			# Save loss/accuracy of this epoch
-			# self.loss.save_result()
-			# self.accuracy.save_result()
+				# Callbacks BATCH end
+				for cb in callbacks:
+					cb.on_batch_end()
 
-			# Get/save total metrics data of this epoch & reset vars
-			metrics_log = metrics_data_to_str(self.metrics)
+			# # Get total metrics data of this epoch
+			# print(f"Model train      dataset {self.get_metrics_logs()}")
 
-			print(f"\n-------------------------")
-			print(f"EPOCH {epoch}/{epochs - 1}{metrics_log}")
+			val_stats = self.evaluate(self, self.valid_features, self.valid_targets, verbose=verbose)
+
+			print(f"Metrics: {self.get_metrics_logs()}")
+			print(f"\n-------------------------\n")
+
+			# Callbacks EPOCH end
+			for cb in callbacks:
+				cb.on_epoch_end(
+					model=self,
+					metrics=self.metrics
+				)
+
+			if self.stop_trainning:
+				break
+
+			# Save in mem & Reset metrics values
+			self.reset_metrics(save=True)
 
 		self.print_graph()
 
-		ret = super().evaluate(self, self.valid_features, self.valid_targets, verbose=verbose)
-		print(self.loss.get_mem())
-		print(self.accuracy.get_mem())
-		print(f"ret= {ret}")
-		return ret
+		# Callbacks TRAIN end
+		for cb in callbacks:
+			cb.on_train_end()
+
+		return val_stats
+
 
 	def summary(self, only_model_summary=True):
 		
