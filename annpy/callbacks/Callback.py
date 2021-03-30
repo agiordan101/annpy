@@ -15,5 +15,18 @@ class Callback():
 		pass
 	
 	@abstractmethod
+	def on_epoch_begin(self):
+		pass
+	
+	@abstractmethod
 	def on_epoch_end(self):
 		pass
+
+	@abstractmethod
+	def on_batch_begin(self):
+		pass
+	
+	@abstractmethod
+	def on_batch_end(self):
+		pass
+

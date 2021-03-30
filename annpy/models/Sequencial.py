@@ -129,9 +129,11 @@ class Sequencial(Model):
 
 		self.print_graph()
 
-		return super().evaluate(self, self.valid_features, self.valid_targets, verbose=verbose)
-
-
+		ret = super().evaluate(self, self.valid_features, self.valid_targets, verbose=verbose)
+		print(self.loss.get_mem())
+		print(self.accuracy.get_mem())
+		print(f"ret= {ret}")
+		return ret
 
 	def summary(self, only_model_summary=True):
 		
