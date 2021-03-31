@@ -38,8 +38,8 @@ class Metric(metaclass=ABCMeta):
 		pass
 
 	def get_result(self):
-		if self.total == 0:
-			return self.mem[-1]
+		# if self.total == 0:
+		# 	return self.mem[-1]
 		return self.count / self.total
 
 	def get_mem(self):
@@ -62,10 +62,10 @@ class Metric(metaclass=ABCMeta):
 	def copy(self):
 		return copy.deepcopy(self)
 
-	def append_into(self, metrics, val_duplication=True):
+	# def append_into(self, metrics, val_duplication=True):
 
-		metrics[str(self)] = self
+	# 	metrics[str(self)] = self
 
-		if val_duplication:
-			cpy = self.copy().set_name('val_' + str(self))
-			metrics[str(cpy)] = cpy
+	# 	if val_duplication:
+	# 		cpy = self.copy().set_name('val_' + str(self))
+	# 		metrics[str(cpy)] = cpy

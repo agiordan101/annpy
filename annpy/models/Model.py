@@ -17,13 +17,26 @@ class Model():
 		self.weights = None
 
 		self.metrics = {}
+		self.train_metrics = {}
+		self.val_metrics = {}
 		self.loss = None
 		self.optimizer = None
 
 		self.stop_trainning = False
+		self.val_metrics_on = True
 
 	def __str__(self):
 		raise NotImplementedError
+
+	def add_metric(self, metric):
+
+		cpy = metric.copy().set_name('val_' + str(metric))
+		self.metrics[str(cpy)] = cpy
+		self.val_metrics[str(cpy)] = cpy
+
+		self.metrics[str(metric)] = metric
+		self.train_metrics[str(metric)] = metric
+
 
 	def compile(self, loss, optimizer, metrics):
 
@@ -31,47 +44,53 @@ class Model():
 
 		# Add loss to metrics
 		self.loss = annpy.utils.parse.parse_object(loss, Loss)
-		self.loss.append_into(self.metrics)
+		self.add_metric(self.loss)
+		# self.loss.append_into(self.metrics)
 
 		# Save in accuracy the first metric to inherite from Accuracy
 		self.accuracy = None
 
 		for metric in metrics:
 			metric = annpy.utils.parse.parse_object(metric, Metric)
-			metric.append_into(self.metrics)
+			self.add_metric(metric)
+			# metric.append_into(self.metrics)
 
 			if not self.accuracy and issubclass(type(metric), Accuracy):
 				self.accuracy = metric
 
 		if not self.accuracy:
 			self.accuracy = Accuracy()
-			self.accuracy.append_into(self.metrics)
+			self.add_metric(self.accuracy)
+			# self.accuracy.append_into(self.metrics)
 
 		print(self.metrics)
+		print(self.train_metrics)
+		print(self.val_metrics)
 
 
 	def forward(self):
 		raise NotImplementedError
 	
-	def evaluate(self, model, features, target, verbose=True):
+	def evaluate(self, model, features, target, val_metrics_on=True, verbose=True):
 
 		prediction = model.forward(features)
 
-		# self.loss.reset(save=False)
-		# self.loss(predictions, targets)
-		# loss = self.loss.get_result()
-
-		# self.accuracy.reset(save=False)
-		# self.accuracy(predictions, targets)
-		# accuracy = self.accuracy.get_result()
+		current_metrics = self.val_metrics.values() if self.val_metrics_on else self.train_metrics.values()
 
 		# Metrics actualisation (Loss actualisation too)
-		for metric in self.metrics.values():
-			if 'val_' in metric.name:
-				metric.reset(save=False)
-				metric(prediction, target)
+		for metric in current_metrics:
 
-		return self.loss.get_result(), self.accuracy.get_result()
+			print(f"val={self.val_metrics_on} -> {metric.name}")
+			metric.reset(save=False)
+			metric(prediction, target)
+			if isinstance(metric, type(self.loss)):
+				loss = metric.get_result()
+				print(f"loss find: {loss}")
+			if isinstance(metric, type(self.accuracy)):
+				accuracy = metric.get_result()
+				print(f"accuracy find: {accuracy}")
+
+		return loss, accuracy
 
 	def fit(self,
 			train_features,
@@ -83,20 +102,22 @@ class Model():
 			val_targets,
 			val_percent,
 			verbose):
-		
+
+		self.val_metrics_on = bool(val_percent)
+
 		self.train_features = train_features
 		self.train_targets = train_targets
-		self.val_features = val_features
-		self.val_targets = val_targets
+		self.val_features = train_features
+		self.val_targets = train_targets
 
 		if val_features is None and val_percent is not None:
 			# Split dataset in 2 -> New train dataset & validation dataset
 			datasets = self.split_dataset(train_features, train_targets, [int(val_percent * len(train_features))])
 
-			self.val_features = datasets[0][0]
-			self.val_targets = datasets[0][1]
 			self.train_features = datasets[1][0]
 			self.train_targets = datasets[1][1]
+			self.val_features = datasets[0][0]
+			self.val_targets = datasets[0][1]
 
 		# Train dataset length
 		self.ds_train_len = len(self.train_features)
@@ -107,20 +128,29 @@ class Model():
 		# Split dataset into <n_batch> batch of len <batch_size>
 		self.batch_split = list(range(0, self.ds_train_len, batch_size))[1:]
 
-		for metric in self.metrics.values():
-			metric.hard_reset()
+		# Reset metrics for new model fit
+		self.hard_reset_metrics()
 
 
 	def get_metrics_logs(self):
 		return ''.join([metric.log() for metric in self.metrics.values()])
 
-	def reset_metrics(self, save):
+	def reset_metrics(self, save=False):
 		for metric in self.metrics.values():
 			metric.reset(save)
 
+	def hard_reset_metrics(self):
+		for metric in self.metrics.values():
+			metric.hard_reset()
+
+	# def get_metrics(self):
+	# 	for metric in self.metrics.values():
+	# 		if self.val_metrics_on == ('val_' == metric.name[:4]):
+	# 			yield metric
+
 	def split_dataset(self, a, b, batch_split):
 
-		print(f"Split dataset")
+		# print(f"Split dataset: {batch_split}")
 		# Shuffle
 		seed = np.random.get_state()
 		np.random.shuffle(a)
@@ -146,6 +176,8 @@ class Model():
 			data[str(metric)] = metric.get_mem()
 
 		data_df = pd.DataFrame(data)
+		print(data_df)
+
 		fig = px.line(data_df)
 		fig.show()
 

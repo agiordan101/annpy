@@ -95,7 +95,7 @@ class Sequencial(Model):
 				cb.on_epoch_begin()
 
 			# Dataset shuffle + split
-			batchs = super().split_dataset(train_features, train_targets, self.batch_split)
+			batchs = self.split_dataset(train_features, train_targets, self.batch_split)
 
 			# print(list(batchs))
 			for step, data in enumerate(batchs):
@@ -110,9 +110,9 @@ class Sequencial(Model):
 				prediction = self.forward(features)
 
 				# Metrics actualisation (Loss actualisation too)
-				for metric in self.metrics.values():
-					if 'val_' not in metric.name:
-						metric(prediction, target)
+				for metric in self.train_metrics.values():
+					# print(f"train={self.val_metrics_on} -> {metric.name}")
+					metric(prediction, target)
 
 				if verbose:
 					print(f"STEP={step}/{self.n_batch - 1}")
@@ -133,11 +133,9 @@ class Sequencial(Model):
 				for cb in callbacks:
 					cb.on_batch_end()
 
-			# # Get total metrics data of this epoch
-			# print(f"Model train      dataset {self.get_metrics_logs()}")
-
 			val_stats = self.evaluate(self, self.val_features, self.val_targets, verbose=verbose)
 
+			# Get total metrics data of this epoch
 			print(f"Metrics: {self.get_metrics_logs()}")
 			print(f"\n-------------------------\n")
 

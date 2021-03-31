@@ -50,9 +50,9 @@ class EarlyStopping(Callback):
 
 		value = metrics[self.monitor].get_result() * self.sign
 
-		# print(f"Mode={self.mode}: {value} < {self.best_val} - {self.min_delta}")
+		print(f"Mode={self.mode}: {value} < {self.best_val} - {self.min_delta}")
 
-		if value < self.best_val - self.min_delta:
+		if value <= self.best_val - self.min_delta:
 			self.best_val = value
 			self.fails = 0
 
