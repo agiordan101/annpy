@@ -42,6 +42,10 @@ def get_model():
 
 	model = annpy.models.Sequencial(input_shape=29, name="First model")
 	model.add(annpy.layers.FullyConnected(
+		50,
+		activation="ReLU",
+	))
+	model.add(annpy.layers.FullyConnected(
 		30,
 		activation="ReLU",
 	))
@@ -55,8 +59,8 @@ def get_model():
 	))
 	model.compile(
 		loss="MSE",
-		optimizer="SGD",
-		# optimizer=annpy.optimizers.SGD(),
+		# optimizer="SGD",
+		optimizer=annpy.optimizers.SGD(0.01),
 		metrics=[annpy.metrics.RangeAccuracy([0.5, 0.5])]
 	)
 	return model
@@ -84,17 +88,18 @@ loss, accuracy = model.fit(
 	callbacks=[
 		annpy.callbacks.EarlyStopping(
 			monitor='val_MSE',
-			patience=10,
+			patience=5,
 			min_delta=0.0001,
 			mode='min'
 		)
 	],
+	val_percent=None,
 	verbose=True
 )
 
 # loss, accuracy = model.fit(
 # 	features,
 # 	targets,
-# 	epochs=50,
+# 	epochs=7,
 # 	verbose=True
 # )

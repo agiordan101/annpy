@@ -53,8 +53,8 @@ class Model():
 	def fit(self,
 			features,
 			targets,
-			valid_features=None,
-			valid_targets=None,
+			val_features=None,
+			val_targets=None,
 			k_fold_as_valid=False,
 			k_fold_percent=0.2):
 

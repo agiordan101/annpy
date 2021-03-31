@@ -75,16 +75,16 @@ class Sequencial(Model):
 			batch_size=42,
 			epochs=420,
 			callbacks=[],
-			valid_features=None,
-			valid_targets=None,
-			valid_percent=0.2,
+			val_features=None,
+			val_targets=None,
+			val_percent=0.2,
 			verbose=True):
 
 		# Callbacks TRAIN begin
 		for cb in callbacks:
 			cb.on_train_begin(model=self)
 
-		super().fit(train_features, train_targets, batch_size, epochs, callbacks, valid_features, valid_targets, valid_percent, verbose)
+		super().fit(train_features, train_targets, batch_size, epochs, callbacks, val_features, val_targets, val_percent, verbose)
 
 		for epoch in range(epochs):
 
@@ -136,7 +136,7 @@ class Sequencial(Model):
 			# # Get total metrics data of this epoch
 			# print(f"Model train      dataset {self.get_metrics_logs()}")
 
-			val_stats = self.evaluate(self, self.valid_features, self.valid_targets, verbose=verbose)
+			val_stats = self.evaluate(self, self.val_features, self.val_targets, verbose=verbose)
 
 			print(f"Metrics: {self.get_metrics_logs()}")
 			print(f"\n-------------------------\n")

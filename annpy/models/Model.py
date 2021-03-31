@@ -79,17 +79,22 @@ class Model():
 			batch_size,
 			epochs,
 			callbacks,
-			valid_features,
-			valid_targets,
-			valid_percent,
+			val_features,
+			val_targets,
+			val_percent,
 			verbose):
+		
+		self.train_features = train_features
+		self.train_targets = train_targets
+		self.val_features = val_features
+		self.val_targets = val_targets
 
-		if valid_features is None:
+		if val_features is None and val_percent is not None:
 			# Split dataset in 2 -> New train dataset & validation dataset
-			datasets = self.split_dataset(train_features, train_targets, [int(valid_percent * len(train_features))])
+			datasets = self.split_dataset(train_features, train_targets, [int(val_percent * len(train_features))])
 
-			self.valid_features = datasets[0][0]
-			self.valid_targets = datasets[0][1]
+			self.val_features = datasets[0][0]
+			self.val_targets = datasets[0][1]
 			self.train_features = datasets[1][0]
 			self.train_targets = datasets[1][1]
 
@@ -115,6 +120,7 @@ class Model():
 
 	def split_dataset(self, a, b, batch_split):
 
+		print(f"Split dataset")
 		# Shuffle
 		seed = np.random.get_state()
 		np.random.shuffle(a)
