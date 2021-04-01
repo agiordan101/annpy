@@ -13,10 +13,11 @@ class Accuracy(Metric):
 
 	# Depend on child class
 	def compute(self, predictions, targets):
-		return len([1 for prediction, target in zip(predictions, targets) if self.accuracy_conditions(prediction, target)])
+		return len([1 for prediction, target in zip(predictions, targets) if self.accuracy_conditions(prediction, target)]) / len(predictions)
+		# return len([1 for prediction, target in zip(predictions, targets) if self.accuracy_conditions(prediction, target)])
 
-	def get_mem_len_append(self, predictions, targets):
-		return len(predictions)
+	# def get_mem_len_append(self, predictions, targets):
+	# 	return len(predictions)
 
 	def summary(self):
 		print(f"Metric:\t\tannpy.accuracies.Accuracy, (Exact values tested)")

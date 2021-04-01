@@ -21,21 +21,22 @@ class Metric(metaclass=ABCMeta):
 		return f"-- {str(self)}: {self.get_result()} "
 
 	def __call__(self, predictions, targets):
-		count = self.compute(predictions, targets)
-		total = self.get_mem_len_append(predictions, targets)
-		self.count += count
-		self.total += total
+		
+		# total = self.get_mem_len_append(predictions, targets)
+		self.count += self.compute(predictions, targets)
+		self.total += 1
+		# self.total += total
 
 	def save_result(self):
 		self.mem.append(self.get_result())
 
 	@abstractmethod
-	def compute(self, **kwargs):
+	def compute(self):
 		pass
 
-	@abstractmethod
-	def get_mem_len_append(self, **kwargs):
-		pass
+	# @abstractmethod
+	# def get_mem_len_append(self, **kwargs):
+	# 	pass
 
 	def get_result(self):
 		# if self.total == 0:

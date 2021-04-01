@@ -133,7 +133,7 @@ class Sequencial(Model):
 				for cb in callbacks:
 					cb.on_batch_end()
 
-			val_stats = self.evaluate(self, self.val_features, self.val_targets, verbose=verbose)
+			self.evaluate(self, self.val_features, self.val_targets)
 
 			# Get total metrics data of this epoch
 			print(f"Metrics: {self.get_metrics_logs()}")
@@ -158,7 +158,7 @@ class Sequencial(Model):
 		for cb in callbacks:
 			cb.on_train_end()
 
-		return val_stats
+		return self.loss.get_mem()[-1], self.accuracy.get_mem()[-1]
 
 
 	def summary(self, only_model_summary=True):

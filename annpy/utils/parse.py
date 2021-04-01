@@ -1,5 +1,6 @@
 import annpy
 from annpy.losses.MSE import MSE
+from annpy.losses.BinaryCrossEntropy import BinaryCrossEntropy
 from annpy.optimizers.SGD import SGD
 from annpy.metrics.Accuracy import Accuracy
 from annpy.activations.ReLU import ReLU
@@ -31,6 +32,7 @@ objects = {
 	'glorotuniform': GlorotUniform,
 	'randomnormal': RandomNormal,
 	'randomuniform': RandomUniform,
+	'binarycrossentropy': BinaryCrossEntropy,
 }
 
 def parse_object(obj, cls, str_allowed=True):

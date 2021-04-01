@@ -58,10 +58,13 @@ def get_model():
 		activation="Sigmoid",
 	))
 	model.compile(
+		# loss="BinaryCrossEntropy",
 		loss="MSE",
-		# optimizer="SGD",
 		optimizer=annpy.optimizers.SGD(0.01),
-		metrics=[annpy.metrics.RangeAccuracy([0.5, 0.5])]
+		metrics=[
+			# "MSE",
+			annpy.metrics.RangeAccuracy([0.5, 0.5])
+		]
 	)
 	return model
 
@@ -83,15 +86,16 @@ model.summary()
 loss, accuracy = model.fit(
 	features,
 	targets,
-	epochs=500,
+	epochs=100,
 	batch_size=10,
 	callbacks=[
-		annpy.callbacks.EarlyStopping(
-			monitor='val_MSE',
-			patience=5,
-			min_delta=0,
-			mode='min'
-		)
+		# annpy.callbacks.EarlyStopping(
+		# 	monitor='val_BinaryCrossEntropy',
+		# 	# monitor='val_MSE',
+		# 	patience=40,
+		# 	min_delta=0,
+		# 	mode='min'
+		# )
 	],
 	# val_percent=None,
 	verbose=False
