@@ -41,6 +41,7 @@ import numpy as np
 def get_model():
 
 	model = annpy.models.Sequencial(input_shape=29, name="First model")
+
 	model.add(annpy.layers.FullyConnected(
 		40,
 		activation="ReLU",
@@ -50,16 +51,17 @@ def get_model():
 		activation="ReLU",
 	))
 	model.add(annpy.layers.FullyConnected(
-		15,
+		10,
 		activation="ReLU",
 	))
 	model.add(annpy.layers.FullyConnected(
 		2,
-		activation="Sigmoid",
+		# activation="Sigmoid",
+		activation="Softmax",
 	))
 	model.compile(
-		# loss="BinaryCrossEntropy",
-		loss="MSE",
+		loss="BinaryCrossEntropy",
+		# loss="MSE",
 		optimizer=annpy.optimizers.SGD(0.01),
 		metrics=[
 			# "MSE",
@@ -79,6 +81,12 @@ data.parse_dataset(dataset_path="ressources/data.csv",
 data.normalize()
 features, targets = data.get_data(binary_targets=['B', 'M'])
 
+# print(targets)
+# first = len([1 for m, b in targets if m == 1.])
+# print(first)
+# print(len(targets) - first)
+# exit(0)
+
 model = get_model()
 model.summary()
 # model.deepsummary()
@@ -86,16 +94,20 @@ model.summary()
 loss, accuracy = model.fit(
 	features,
 	targets,
-	epochs=100,
+	epochs=200,
 	batch_size=10,
 	callbacks=[
 		# annpy.callbacks.EarlyStopping(
-		# 	monitor='val_BinaryCrossEntropy',
-		# 	# monitor='val_MSE',
-		# 	patience=40,
-		# 	min_delta=0,
-		# 	mode='min'
-		# )
+		# 	monitor='val_RangeAccuracy',
+		# 	patience=10,
+		# ),
+		annpy.callbacks.EarlyStopping(
+			monitor='val_BinaryCrossEntropy',
+			# monitor='val_RangeAccuracy',
+			# monitor='BinaryCrossEntropy',
+			# monitor='val_MSE',
+			patience=10,
+		)
 	],
 	# val_percent=None,
 	verbose=False

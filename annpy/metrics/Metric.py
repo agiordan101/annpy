@@ -1,7 +1,7 @@
 import copy
 from abc import ABCMeta, abstractmethod
 
-# Kwargs is necessary in @abstractmethod because some childs metrics would not take arguments of other metrics
+# Kwargs is necessary in child class abstractmethod because some childs metrics would not take arguments of other metrics
 class Metric(metaclass=ABCMeta):
 
 	def __init__(self):
@@ -56,17 +56,15 @@ class Metric(metaclass=ABCMeta):
 		self.reset(save=False)
 		self.mem = []
 
-	@abstractmethod
-	def summary(self, **kwargs):
-		pass
-
 	def copy(self):
 		return copy.deepcopy(self)
 
-	# def append_into(self, metrics, val_duplication=True):
+	@abstractmethod
+	def summary(self):
+		pass
 
-	# 	metrics[str(self)] = self
+	@abstractmethod
+	def get_variation_goal(self):
+		# 'min' or 'max'
+		pass
 
-	# 	if val_duplication:
-	# 		cpy = self.copy().set_name('val_' + str(self))
-	# 		metrics[str(cpy)] = cpy

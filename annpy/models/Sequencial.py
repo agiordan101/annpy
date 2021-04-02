@@ -58,7 +58,6 @@ class Sequencial(Model):
 		self.sequence_rev = self.sequence.copy()
 		self.sequence_rev.reverse()
 
-
 	def forward(self, inputs):
 
 		# print(f"Input shape={inputs.shape}")
@@ -95,9 +94,11 @@ class Sequencial(Model):
 				cb.on_epoch_begin()
 
 			# Dataset shuffle + split
-			batchs = self.split_dataset(train_features, train_targets, self.batch_split)
+			batchs = self.split_dataset(train_features, train_targets)
+			# batchs = self.split_dataset(train_features, train_targets, self.batch_split)
 
 			# print(list(batchs))
+			# for step, (features, target) in enumerate(batchs):
 			for step, data in enumerate(batchs):
 
 				# Callbacks BATCH begin
@@ -105,6 +106,12 @@ class Sequencial(Model):
 					cb.on_batch_begin()
 
 				features, target = data
+				# features = features[:3]
+				# target = target[:3]
+
+				# print(features)
+				# print(target)
+				# exit(0)
 
 				# Prediction
 				prediction = self.forward(features)
@@ -113,6 +120,7 @@ class Sequencial(Model):
 				for metric in self.train_metrics.values():
 					# print(f"train={self.val_metrics_on} -> {metric.name}")
 					metric(prediction, target)
+				
 
 				if verbose:
 					print(f"STEP={step}/{self.n_batch - 1}")
@@ -133,6 +141,8 @@ class Sequencial(Model):
 				for cb in callbacks:
 					cb.on_batch_end()
 
+			# self.debug.append(list(self.train_metrics.values())[0].get_result())
+
 			self.evaluate(self, self.val_features, self.val_targets)
 
 			# Get total metrics data of this epoch
@@ -146,11 +156,11 @@ class Sequencial(Model):
 					metrics=self.metrics
 				)
 
-			if self.stop_trainning:
-				break
-
 			# Save in mem & Reset metrics values
 			self.reset_metrics(save=True)
+
+			if self.stop_trainning:
+				break
 
 		self.print_graph()
 

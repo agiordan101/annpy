@@ -22,3 +22,5 @@ class Accuracy(Metric):
 	def summary(self):
 		print(f"Metric:\t\tannpy.accuracies.Accuracy, (Exact values tested)")
 
+	def get_variation_goal(self):
+		return 'max'

@@ -3,12 +3,21 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
+from sklearn.model_selection import train_test_split
+
 from annpy.losses.Loss import Loss
 from annpy.metrics.Metric import Metric
 from annpy.metrics.Accuracy import Accuracy
 from annpy.optimizers.Optimizer import Optimizer
 
+
+from annpy.losses.BinaryCrossEntropy import BinaryCrossEntropy
+from annpy.metrics.RangeAccuracy import RangeAccuracy
+
+
 class Model():
+
+	debug = []
 
 	def __init__(self, input_shape, input_layer, name):
 
@@ -28,6 +37,11 @@ class Model():
 
 		self.stop_trainning = False
 		self.val_metrics_on = True
+
+
+		# self.val_loss = BinaryCrossEntropy()
+		# self.val_accuracy = RangeAccuracy([0.5, 0.5])
+
 
 	def __str__(self):
 		raise NotImplementedError
@@ -73,6 +87,18 @@ class Model():
 	def forward(self):
 		raise NotImplementedError
 
+	# def evaluate(self, model, features, target, val_metrics_on=True, return_stats=False):
+
+	# 	prediction = model.forward(features)
+
+	# 	self.val_loss(prediction, target)
+	# 	self.val_accuracy(prediction, target)
+
+	# 	self.val_loss.reset(save=True)
+	# 	self.val_accuracy.reset(save=True)
+
+
+
 	def evaluate(self, model, features, target, val_metrics_on=True, return_stats=False):
 
 		prediction = model.forward(features)
@@ -85,12 +111,15 @@ class Model():
 		# loss = loss_metric.get_result()
 		# print(f"loss find: {type(loss_metric)} -> {loss}")
 
+		# print(f"val ds len: {len(features)}")
+
 		# Metrics actualisation
 		for metric in self.eval_metrics:
 
 			# print(f"val={self.val_metrics_on} -> {metric.name}")
 			metric.reset(save=False)
 			metric(prediction, target)
+
 			# if isinstance(metric, type(self.accuracy)):  #Opti with pre compute of val_accuracy
 			# 	accuracy = metric.get_result()
 			# 	print(f"accuracy find: {accuracy}")
@@ -132,12 +161,18 @@ class Model():
 
 		if val_features is None and val_percent is not None:
 			# Split dataset in 2 -> New train dataset & validation dataset
+			self.n_batch = 2
 			datasets = self.split_dataset(train_features, train_targets, [int(val_percent * len(train_features))])
-
 			self.train_features = datasets[1][0]
 			self.train_targets = datasets[1][1]
 			self.val_features = datasets[0][0]
 			self.val_targets = datasets[0][1]
+
+			# X_train, X_test, y_train, y_test = train_test_split(train_features, train_targets, test_size=0.2, shuffle=False)
+			# self.train_features = X_train
+			# self.train_targets = y_train
+			# self.val_features = X_test
+			# self.val_targets = y_test
 
 		# Train dataset length
 		self.ds_train_len = len(self.train_features)
@@ -146,7 +181,9 @@ class Model():
 		self.n_batch = self.ds_train_len // batch_size + (1 if self.ds_train_len % batch_size else 0)
 
 		# Split dataset into <n_batch> batch of len <batch_size>
-		self.batch_split = list(range(0, self.ds_train_len, batch_size))[1:]
+		# self.batch_split = list(range(0, self.ds_train_len, batch_size))[1:]
+		# print(self.batch_split)
+		# exit(0)
 
 		# Reset metrics for new model fit
 		self.hard_reset_metrics()
@@ -165,26 +202,55 @@ class Model():
 		# for metric in self.metrics.values():
 			metric.hard_reset()
 
-	# def get_metrics(self):
-	# 	for metric in self.metrics.values():
-	# 		if self.val_metrics_on == ('val_' == metric.name[:4]):
-	# 			yield metric
 
-	def split_dataset(self, a, b, batch_split):
+	def split_dataset(self, a, b, shuffle=True):
+	# def split_dataset(self, a, b, batch_split, shuffle=True):
 
 		# print(f"Split dataset: {batch_split}")
-		# Shuffle
-		seed = np.random.get_state()
-		np.random.shuffle(a)
-		np.random.set_state(seed)
-		np.random.shuffle(b)
+		# a = a[97:100]
+		# b = b[97:100]
+		# print(a)
+		# print(b)
+		# a = a.copy()
+		# b = b.copy()
 
+		# Shuffle
+		# if shuffle:
+		# 	seed = np.random.get_state()
+		# 	np.random.shuffle(a)
+		# 	np.random.set_state(seed)
+		# 	np.random.shuffle(b)
+		
+		# print(a)
+		# print(b)
+		# exit(0)
+
+		# batch_split = [1]
+		# self.n_batch = 2
 		# Split batches
-		a = np.split(a, batch_split)
-		b = np.split(b, batch_split)
+		a = np.array_split(a, self.n_batch)
+		b = np.array_split(b, self.n_batch)
+		# print(a)
+		# print(b)
+
+		# print(list(zip(a, b)))
+		# exit(0)
 
 		# Merge
 		return list(zip(a, b))
+
+
+
+	# def print_graph(self, metrics=[]):
+		
+	# 	data = {
+	# 		'loss': self.val_loss.get_mem(),
+	# 		'accuracy': self.val_accuracy.get_mem()
+	# 	}
+	# 	data_df = pd.DataFrame(data)
+
+	# 	fig = px.line(data_df)
+	# 	fig.show()
 
 	def print_graph(self, metrics=[]):
 
@@ -197,10 +263,16 @@ class Model():
 		for metric in metrics:
 			data[str(metric)] = metric.get_mem()
 
+		# print(len(self.debug))
 		data = {k:v for k, v in data.items() if len(v)}
-		print(f"Data lengths: {data}")
+		data['Subject goal'] = [0.08] * len(list(data.values())[0])
+		# data['debug'] = self.debug
 		data_df = pd.DataFrame(data)
+
+		best_val = {key: max(values) if "accuracy" in key.lower() else min(values) for key, values in data.items()}
+
 		print(data_df)
+		print(f"Best metrics value: {best_val}")
 
 		fig = px.line(data_df)
 		fig.show()

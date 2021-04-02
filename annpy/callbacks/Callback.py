@@ -30,3 +30,7 @@ class Callback():
 	@abstractmethod
 	def on_batch_end(self, **kwargs):
 		pass
+
+	@abstractmethod
+	def summary(self):
+		pass

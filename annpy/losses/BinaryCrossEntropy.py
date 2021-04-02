@@ -17,9 +17,9 @@ class BinaryCrossEntropy(Loss):
 		ret = -np.mean(bces)
 		# print(f"{self.name}:\n{ret}")
 		# print(f"{self.name}:\n{bces}\n{ret}")
-		if ret == np.nan:
-			print("WTFF NANANNANANANAN")
-			exit(0)
+		# if ret == np.nan:
+		# 	print("WTFF NANANNANANANAN")
+		# 	exit(0)
 		return ret
 	# def get_mem_len_append(self, **kwargs):
 	# 	return 1
