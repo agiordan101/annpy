@@ -101,6 +101,10 @@ class Sequencial(Model):
 			# for step, (features, target) in enumerate(batchs):
 			for step, data in enumerate(batchs):
 
+				if verbose:
+					print(f"STEP={step}/{self.n_batch - 1}")
+					# print(f"STEP={step}/{self.n_batch - 1}\tloss: {self.loss.get_result()}")
+
 				# Callbacks BATCH begin
 				for cb in callbacks:
 					cb.on_batch_begin()
@@ -116,15 +120,10 @@ class Sequencial(Model):
 				# Prediction
 				prediction = self.forward(features)
 
-				# Metrics actualisation (Loss actualisation too)
+				# Metrics actualisation
 				for metric in self.train_metrics.values():
 					# print(f"train={self.val_metrics_on} -> {metric.name}")
 					metric(prediction, target)
-				
-
-				if verbose:
-					print(f"STEP={step}/{self.n_batch - 1}")
-					# print(f"STEP={step}/{self.n_batch - 1}\tloss: {self.loss.get_result()}")
 
 				# Backpropagation
 				gradients = self.loss.derivate(prediction, target), 0, 0

@@ -215,11 +215,13 @@ class Model():
 		# b = b.copy()
 
 		# Shuffle
-		# if shuffle:
-		# 	seed = np.random.get_state()
-		# 	np.random.shuffle(a)
-		# 	np.random.set_state(seed)
-		# 	np.random.shuffle(b)
+		if shuffle:
+			a = a.copy()
+			b = b.copy()
+			seed = np.random.get_state()
+			np.random.shuffle(a)
+			np.random.set_state(seed)
+			np.random.shuffle(b)
 		
 		# print(a)
 		# print(b)

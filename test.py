@@ -62,7 +62,7 @@ def get_model():
 	model.compile(
 		loss="BinaryCrossEntropy",
 		# loss="MSE",
-		optimizer=annpy.optimizers.SGD(0.01),
+		optimizer=annpy.optimizers.SGD(0.1),
 		metrics=[
 			# "MSE",
 			annpy.metrics.RangeAccuracy([0.5, 0.5])
@@ -81,6 +81,9 @@ data.parse_dataset(dataset_path="ressources/data.csv",
 data.normalize()
 features, targets = data.get_data(binary_targets=['B', 'M'])
 
+# print([f for f in np.nditer(features)])
+# exit(0)
+
 # print(targets)
 # first = len([1 for m, b in targets if m == 1.])
 # print(first)
@@ -91,11 +94,15 @@ model = get_model()
 model.summary()
 # model.deepsummary()
 
+# softmax = annpy.activations.Softmax()
+# a = np.array([[1, 2, 1]])
+# print(softmax(a))
+
 loss, accuracy = model.fit(
 	features,
 	targets,
-	epochs=200,
-	batch_size=10,
+	epochs=500,
+	batch_size=42,
 	callbacks=[
 		# annpy.callbacks.EarlyStopping(
 		# 	monitor='val_RangeAccuracy',
@@ -106,7 +113,7 @@ loss, accuracy = model.fit(
 			# monitor='val_RangeAccuracy',
 			# monitor='BinaryCrossEntropy',
 			# monitor='val_MSE',
-			patience=10,
+			patience=20,
 		)
 	],
 	# val_percent=None,

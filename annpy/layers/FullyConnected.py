@@ -76,7 +76,7 @@ class FullyConnected(Layer):
 		# print(f"dfa mean {dfa_mean.shape}:\n{dfa_mean}")
 
 		# d(weighted sum) / d(wi)
-		dw = np.matmul(self.inputs.T, dfa)		# (n_inputs, batch_size) * (batch_size, n_neurons) = (n_inputs, n_neurons)
+		dw = np.matmul(self.inputs.T, dfa) / self.inputs.shape[0]		# (n_inputs, batch_size) * (batch_size, n_neurons) = (n_inputs, n_neurons)
 		# dw = self.inputs.T * dfa
 		# print(f"dw {dw.shape}:\n{dw}")
 
