@@ -5,6 +5,7 @@ class Sigmoid(Activation):
 
 	def __call__(self, x):
 		return 1 / (1 + np.exp(-x))
+		# return np.ma.fix_invalid(data, fill_value=1e+20).data
 
 	def derivate(self, x):
 		s = self(x)

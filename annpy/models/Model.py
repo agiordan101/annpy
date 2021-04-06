@@ -204,15 +204,6 @@ class Model():
 
 
 	def split_dataset(self, a, b, shuffle=True):
-	# def split_dataset(self, a, b, batch_split, shuffle=True):
-
-		# print(f"Split dataset: {batch_split}")
-		# a = a[97:100]
-		# b = b[97:100]
-		# print(a)
-		# print(b)
-		# a = a.copy()
-		# b = b.copy()
 
 		# Shuffle
 		if shuffle:
@@ -223,20 +214,9 @@ class Model():
 			np.random.set_state(seed)
 			np.random.shuffle(b)
 		
-		# print(a)
-		# print(b)
-		# exit(0)
-
-		# batch_split = [1]
-		# self.n_batch = 2
 		# Split batches
 		a = np.array_split(a, self.n_batch)
 		b = np.array_split(b, self.n_batch)
-		# print(a)
-		# print(b)
-
-		# print(list(zip(a, b)))
-		# exit(0)
 
 		# Merge
 		return list(zip(a, b))

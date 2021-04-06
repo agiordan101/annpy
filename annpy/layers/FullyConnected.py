@@ -103,7 +103,7 @@ class FullyConnected(Layer):
 		# print(f"dw {dw.shape}:\n{dw}")
 		# print(f"dx {dx.shape}:\n{dx}")
 		# exit(0)
-		return dx.T, dw, db
+		return dx.T, [dw, db]
 
 	def summary(self):
 

@@ -47,12 +47,21 @@ class Sequencial(Model):
 			raise Exception(f"[ERROR] {self} input_shape of layer 0 missing")
 		input_shape = self.input_shape
 
-		# w0, b0, ..., ..., wn, bn
-		self.weights = []
+		# self.weightsB:	[[w0, b0], [..., ...], [wn, bn]]
+		self.weightsB = []
 		for layer in self.sequence:
 			# print(f"New layer to compile {input_shape}")
-			self.weights.append(layer.compile(input_shape))
+			weightsB = layer.compile(input_shape)
+			self.weightsB.append(weightsB)
+
+			# Save next input shape
 			input_shape = layer.output_shape
+
+			# Add matrix for optimizer math
+			self.optimizer.add(weightsB)
+
+		# Optimizers maths
+		self.optimizer.compile()
 
 		# Make reverse list for fitting method
 		self.sequence_rev = self.sequence.copy()
@@ -110,12 +119,6 @@ class Sequencial(Model):
 					cb.on_batch_begin()
 
 				features, target = data
-				# features = features[:3]
-				# target = target[:3]
-
-				# print(features)
-				# print(target)
-				# exit(0)
 
 				# Prediction
 				prediction = self.forward(features)
@@ -126,15 +129,18 @@ class Sequencial(Model):
 					metric(prediction, target)
 
 				# Backpropagation
-				gradients = self.loss.derivate(prediction, target), 0, 0
+				dx = self.loss.derivate(prediction, target)
+				gradients = [0, 0]
 				self.optimizer.gradients = []
 				for layer in self.sequence_rev:
 					# print(f"LAYER {layer.layer_index}")
-					gradients = layer.backward(gradients[0])
+					dx, gradients = layer.backward(dx)
+					# gradients = layer.backward(gradients[0])
 					self.optimizer.gradients.append(gradients)
 
 				# Optimizer
-				self.optimizer.apply_gradients(self.weights)
+				self.optimizer.apply_gradients(self.weightsB)
+				# exit(0)
 
 				# Callbacks BATCH end
 				for cb in callbacks:
@@ -187,7 +193,7 @@ class Sequencial(Model):
 		if model_summary:
 			self.summary(only_model_summary=False)
 
-		for i, layer in enumerate(self.weights):
+		for i, layer in enumerate(self.weightsB):
 			print(f"\nLayer {i}:\n")
 			print(f"Weights {layer[0].shape}:\n{layer[0]}\n")
 			print(f"Bias {layer[1].shape}:\n{layer[1]}\n")

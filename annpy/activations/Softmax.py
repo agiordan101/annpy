@@ -4,10 +4,10 @@ from annpy.activations.Activation import Activation
 class Softmax(Activation):
 
 	def __call__(self, x):
-		
 		exp = np.exp(x)
 		return exp / np.sum(exp, axis=1, keepdims=True)
-		
+		# return np.ma.fix_invalid(data, fill_value=1e+20).data
+
 	# def __call__(self, x):
 	# 	print(f"x=\n{x}")
 	# 	exp = np.exp(x)

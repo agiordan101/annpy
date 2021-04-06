@@ -2,6 +2,7 @@ import annpy
 from annpy.losses.MSE import MSE
 from annpy.losses.BinaryCrossEntropy import BinaryCrossEntropy
 from annpy.optimizers.SGD import SGD
+from annpy.optimizers.RMSProp import RMSProp
 from annpy.metrics.Accuracy import Accuracy
 from annpy.activations.ReLU import ReLU
 from annpy.activations.Linear import Linear
@@ -27,6 +28,7 @@ objects = {
 	'linear': Linear,
 	'sigmoid': Sigmoid,
 	'softmax': Softmax,
+	'rmsprop': RMSProp,
 	'accuracy': Accuracy,
 	'lecunnormal': LecunNormal,
 	'lecununiform': LecunUniform,

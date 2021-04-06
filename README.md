@@ -2,7 +2,5 @@
 
 To do:
 
-	- EarlyStopping work ?
-	- Softmax
-	- Binary cross entropy
-	- Adam
+	- Adam optimizer
+	- Dropout layer

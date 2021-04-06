@@ -31,7 +31,7 @@ class Metric(metaclass=ABCMeta):
 		self.mem.append(self.get_result())
 
 	@abstractmethod
-	def compute(self):
+	def compute(self, **kwargs):
 		pass
 
 	# @abstractmethod

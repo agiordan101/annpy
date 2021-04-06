@@ -8,21 +8,17 @@ class BinaryCrossEntropy(Loss):
 		self.name = "BinaryCrossEntropy"
 
 	def BCE(self, prediction, target):
-		ret = np.mean(target * np.log(prediction) + (1 - target) * np.log(1 - prediction))
-		# print(f"p: {prediction}\tt: {target}\tBCE: {ret}")
+		# print(f"prediction={prediction}")
+		
+		ret = np.mean(np.where(target == 1, np.log(prediction), np.log(1 - prediction)))
+		# ret = np.mean(target * np.log(prediction) + (1 - target) * np.log(1 - prediction))
+
 		return ret
 
 	def compute(self, predictions, targets):
 		bces = [self.BCE(prediction, target) for prediction, target in zip(predictions, targets)]
 		ret = -np.mean(bces)
-		# print(f"{self.name}:\n{ret}")
-		# print(f"{self.name}:\n{bces}\n{ret}")
-		# if ret == np.nan:
-		# 	print("WTFF NANANNANANANAN")
-		# 	exit(0)
 		return ret
-	# def get_mem_len_append(self, **kwargs):
-	# 	return 1
 
 	def derivate(self, prediction, target):
 		return prediction - target
