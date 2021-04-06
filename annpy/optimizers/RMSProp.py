@@ -18,11 +18,12 @@ class RMSProp(Optimizer):
 			self.gradient_transform = self.rmsprop
 
 	def add(self, weightsB):
-		self.v.append([np.zeros(w.shape) for w in weightsB])
 		self.sum.append([np.zeros(w.shape) for w in weightsB])
+		if self.momentum:
+			self.v.append([np.zeros(w.shape) for w in weightsB])
 
 	def compile(self):
-		self.n_layers = len(self.sum)
+		self.n_layers = len(self.v)
 
 	def rmsprop(self, gradient, l, wi):
 		# print(f"sum[i] {self.sum[l][wi].shape}:\n{self.sum[l][wi]}")
