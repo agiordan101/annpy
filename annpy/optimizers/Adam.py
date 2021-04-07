@@ -10,6 +10,8 @@ class Adam(Optimizer):
 		self.m2 = []
 		self.beta_1 = beta_1
 		self.beta_2 = beta_2
+		self.beta_1_rev = 1 - beta_1
+		self.beta_2_rev = 1 - beta_2
 		self.beta_1_pow = 0
 		self.beta_2_pow = 0
 		self.epsilon = epsilon
@@ -26,8 +28,8 @@ class Adam(Optimizer):
 	def adam(self, gradient, l, wi, **kwargs):
 
 		# Moments
-		self.m1[l][wi] = self.beta_1 * self.m1[l][wi] + (1 - self.beta_1) * gradient
-		self.m2[l][wi] = self.beta_2 * self.m2[l][wi] + (1 - self.beta_2) * gradient * gradient
+		self.m1[l][wi] = self.beta_1 * self.m1[l][wi] + self.beta_1_rev * gradient
+		self.m2[l][wi] = self.beta_2 * self.m2[l][wi] + self.beta_2_rev * gradient * gradient
 
 		# Correction
 		m1_corrected = self.m1[l][wi] / (1 - self.beta_1_pow)
@@ -38,4 +40,4 @@ class Adam(Optimizer):
 		return -self.lr * m1_corrected / (self.epsilon + np.sqrt(m2_corrected))
 
 	def summary(self):
-		print(f"Optimizer:\tannpy.optimizers.RMSProp, lr={self.lr}, momentum={self.beta_1}, rho={self.beta_2}, epsilon={self.epsilon}")
+		print(f"Optimizer:\tannpy.optimizers.Adam, lr={self.lr}, beta_1={self.beta_1}, beta_2={self.beta_2}, epsilon={self.epsilon}")

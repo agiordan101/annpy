@@ -224,19 +224,6 @@ class Model():
 		# Merge
 		return list(zip(a, b))
 
-
-
-	# def print_graph(self, metrics=[]):
-		
-	# 	data = {
-	# 		'loss': self.val_loss.get_mem(),
-	# 		'accuracy': self.val_accuracy.get_mem()
-	# 	}
-	# 	data_df = pd.DataFrame(data)
-
-	# 	fig = px.line(data_df)
-	# 	fig.show()
-
 	def print_graph(self, metrics=[]):
 
 		if metrics:
@@ -248,10 +235,8 @@ class Model():
 		for metric in metrics:
 			data[str(metric)] = metric.get_mem()
 
-		# print(len(self.debug))
 		data = {k:v for k, v in data.items() if len(v)}
 		data['Subject goal'] = [0.08] * len(list(data.values())[0])
-		# data['debug'] = self.debug
 		data_df = pd.DataFrame(data)
 
 		best_val = {key: max(values) if "accuracy" in key.lower() else min(values) for key, values in data.items()}
@@ -268,7 +253,7 @@ class Model():
 		print(f"Summary of:\t{self.name}")
 
 		self.optimizer.summary()
-		for metric in self.metrics.values():
+		for metric in self.train_metrics.values():
 			metric.summary()
 
 		if only_model_summary:

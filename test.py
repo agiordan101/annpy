@@ -62,18 +62,18 @@ def get_model():
 	model.compile(
 		loss="BinaryCrossEntropy",
 		# loss="MSE",
-		optimizer="Adam",
+		# optimizer="Adam",
 		# optimizer=annpy.optimizers.Adam(
-		# 	lr=0.0001
+		# 	lr=0.0002
 		# ),
 		# optimizer=annpy.optimizers.RMSProp(
 		# 	lr=0.0001,
 		# 	momentum=0.90,
 		# ),
-		# optimizer=annpy.optimizers.SGD(
-		# 	lr=0.02,
-		# 	# momentum=0.92,
-		# ),
+		optimizer=annpy.optimizers.SGD(
+			lr=0.1,
+			# momentum=0.92,
+		),
 		# metrics=[
 		# 	# "MSE",
 		# 	annpy.metrics.RangeAccuracy([0.5, 0.5])
@@ -105,7 +105,7 @@ loss, accuracy = model.fit(
 	callbacks=[
 		annpy.callbacks.EarlyStopping(
 			monitor='val_BinaryCrossEntropy',
-			patience=10,
+			patience=5,
 		)
 	],
 	# val_percent=None,

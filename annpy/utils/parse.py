@@ -45,8 +45,6 @@ objects = {
 
 def parse_object(obj, cls, str_allowed=True):
 
-	print(f"obj={obj}")
-	print(f"cls={cls}")
 	if str_allowed and isinstance(obj, str) and obj.lower() in objects:
 		obj = objects[obj.lower()]()
 
