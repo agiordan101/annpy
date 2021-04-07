@@ -18,11 +18,6 @@ class Optimizer(metaclass=ABCMeta):
 		if not self.gradient_transform:
 			raise NotImplementedError
 
-	# @abstractmethod
-	# def apply_gradients(self, weights_lst):
-	# 	# weightsB:		[[w0, b0], [..., ...], [wn, bn]]
-	# 	# gradients:	[[dw, db], [..., ...], [wn, bn]]
-	# 	pass
 	def apply_gradients(self, weightsB):
 		# weightsB:		[[w0, b0], [..., ...], [wn, bn]]
 		# gradients:	[[dw, db], [..., ...], [wn, bn]]
@@ -37,7 +32,3 @@ class Optimizer(metaclass=ABCMeta):
 	@abstractmethod
 	def summary(self):
 		pass
-
-	# @abstractmethod
-	# def __str__(self):
-	# 	pass

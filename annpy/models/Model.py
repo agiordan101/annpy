@@ -58,6 +58,9 @@ class Model():
 
 	def compile(self, loss, optimizer, metrics):
 
+		if not isinstance(metrics, list):
+			raise Exception("Metrics parameter in Model.compile() is not a list")
+
 		self.optimizer = annpy.utils.parse.parse_object(optimizer, Optimizer)
 
 		# Add loss to metrics

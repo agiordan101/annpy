@@ -3,7 +3,7 @@ from annpy.metrics.Accuracy import Accuracy
 
 class RangeAccuracy(Accuracy):
 
-	def __init__(self, ranges):
+	def __init__(self, ranges=[0.5, 0.5]):
 		super().__init__()
 		self.name = "RangeAccuracy"
 
