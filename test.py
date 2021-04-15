@@ -4,40 +4,6 @@ import annpy
 from DataProcessing import DataProcessing
 import numpy as np
 
-# def get_model():
-
-# 	model = annpy.models.Sequencial(input_shape=29, name="First model")
-# 	model.add(annpy.layers.FullyConnected(
-# 		40,
-# 		activation="ReLU",
-# 		kernel_initializer='LecunUniform',
-# 		bias_initializer='Zeros'
-# 	))
-# 	model.add(annpy.layers.FullyConnected(
-# 		25,
-# 		activation="ReLU",
-# 		kernel_initializer='LecunNormal',
-# 		bias_initializer='Ones'
-# 	))
-# 	model.add(annpy.layers.FullyConnected(
-# 		10,
-# 		activation="ReLU",
-# 		kernel_initializer='RandomUniform',
-# 		bias_initializer='RandomNormal'
-# 	))
-# 	model.add(annpy.layers.FullyConnected(
-# 		2,
-# 		activation="Sigmoid",
-# 		kernel_initializer='GlorotUniform',
-# 		bias_initializer='GlorotNormal'
-# 	))
-# 	model.compile(
-# 		loss="MSE",
-# 		optimizer="SGD",
-# 		# optimizer=annpy.optimizers.SGD(),
-# 		metrics=[annpy.metrics.RangeAccuracy([0.5, 0.5])]
-# 	)
-# 	return model
 def get_model():
 
 	model = annpy.models.Sequencial(input_shape=29, name="First model")
@@ -60,7 +26,11 @@ def get_model():
 		# loss="MSE",
 		# optimizer="Adam",
 		optimizer=annpy.optimizers.Adam(
+<<<<<<< HEAD
 			lr=0.002
+=======
+			lr=0.0003
+>>>>>>> dd22d716030f651bbbc6e66826c6dc4804f60a95
 		),
 		# optimizer=annpy.optimizers.RMSProp(
 		# 	lr=0.0001,
