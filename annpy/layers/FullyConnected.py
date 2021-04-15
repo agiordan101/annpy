@@ -64,13 +64,14 @@ class FullyConnected(Layer):
 
 		# print(f"loss {loss.shape}:\n{loss}")
 		# d(error) / d(activation)
+
 		de = self.fa.derivate(self.ws)
 		# print(f"de {de.shape}:\n{de}")
 
 		# d(activation) / d(weighted sum)
 		dfa = de * loss
 		# dfa = np.matmul(de.T, loss)
-		dfa_mean = np.mean(dfa, axis=0)
+		# dfa_mean = np.mean(dfa, axis=0)
 		# print(f"dfa      {dfa.shape}:\n{dfa}")
 		# print(f"dfa T    {dfa.T.shape}:\n{dfa.T}")
 		# print(f"dfa mean {dfa_mean.shape}:\n{dfa_mean}")
@@ -81,7 +82,7 @@ class FullyConnected(Layer):
 		# print(f"dw {dw.shape}:\n{dw}")
 
 		# d(weighted sum) / d(bias)
-		db = dfa_mean
+		db = np.mean(dfa, axis=0)
 		# print(f"db {db.shape}:\n{db}")
 
 		# d(weighted sum) / d(xi)

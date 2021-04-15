@@ -77,6 +77,9 @@ class Sequencial(Model):
 
 		return inputs
 
+import functools
+
+	@functools.lru_cache()
 	def fit(self,
 			train_features,
 			train_targets,

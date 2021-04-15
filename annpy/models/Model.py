@@ -216,7 +216,7 @@ class Model():
 			np.random.shuffle(a)
 			np.random.set_state(seed)
 			np.random.shuffle(b)
-		
+
 		# Split batches
 		a = np.array_split(a, self.n_batch)
 		b = np.array_split(b, self.n_batch)

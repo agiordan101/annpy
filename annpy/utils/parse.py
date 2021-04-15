@@ -10,6 +10,7 @@ from annpy.activations.ReLU import ReLU
 from annpy.activations.Linear import Linear
 from annpy.activations.Sigmoid import Sigmoid
 from annpy.activations.Softmax import Softmax
+from annpy.activations.Tanh import Tanh
 from annpy.initializers.LecunNormal import LecunNormal
 from annpy.initializers.LecunUniform import LecunUniform
 from annpy.initializers.GlorotNormal import GlorotNormal
@@ -25,6 +26,7 @@ objects = {
 	'mse': MSE,
 	'sgd': SGD,
 	'relu': ReLU,
+	'tanh': Tanh,
 	'ones': Ones,
 	'adam': Adam,
 	'zeros': Zeros,
