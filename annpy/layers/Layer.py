@@ -19,9 +19,8 @@ class Layer(metaclass=ABCMeta):
 		self.kernel_initializer = parse_object(kernel_initializer, Initializer)
 		self.bias_initializer = parse_object(bias_initializer, Initializer)
 
-	# @abstractmethod
-	# def __str__(self):
-	# 	pass
+	def set_layer_index(self, i):
+		self.layer_index = i
 
 	@abstractmethod
 	def compile(self, input_shape):

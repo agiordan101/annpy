@@ -55,41 +55,40 @@ class FullyConnected(Layer):
 		"""
 			3 partial derivatives
 		"""
-		# print(f"BACKPROPAGATION")
-
-		# print(f"inputs T {self.inputs.T.shape}:\n{self.inputs.T}")
+		# print(f"batch size: {self.inputs.shape[0]}")
+		# print(f"inputs {self.inputs.shape}:\n{self.inputs}")
+		# print(f"inputs.T {self.inputs.T.shape}:\n{self.inputs.T}")
 		# print(f"weights {self.weights.shape}:\n{self.weights}")
+		# print(f"weights.T {self.weights.T.shape}:\n{self.weights.T}")
 		# print(f"ws {self.ws.shape}:\n{self.ws}")
 		# print(f"activation {self.activation.shape}:\n{self.activation}")
 
 		# print(f"loss {loss.shape}:\n{loss}")
 		# d(error) / d(activation)
-
 		de = self.fa.derivate(self.ws)
 		# print(f"de {de.shape}:\n{de}")
 
-		# d(activation) / d(weighted sum)
+		# d(error) / d(weighted sum)
 		dfa = de * loss
-		# dfa = np.matmul(de.T, loss)
-		# dfa_mean = np.mean(dfa, axis=0)
 		# print(f"dfa      {dfa.shape}:\n{dfa}")
 		# print(f"dfa T    {dfa.T.shape}:\n{dfa.T}")
 		# print(f"dfa mean {dfa_mean.shape}:\n{dfa_mean}")
 
-		# d(weighted sum) / d(wi)
+		# d(error) / d(wi)
+		# dw = np.matmul(self.inputs.T, dfa)
 		dw = np.matmul(self.inputs.T, dfa) / self.inputs.shape[0]		# (n_inputs, batch_size) * (batch_size, n_neurons) = (n_inputs, n_neurons)
-		# dw = self.inputs.T * dfa
 		# print(f"dw {dw.shape}:\n{dw}")
 
-		# d(weighted sum) / d(bias)
+		# d(error) / d(bias)
 		db = np.mean(dfa, axis=0)
 		# print(f"db {db.shape}:\n{db}")
 
-		# d(weighted sum) / d(xi)
-		# dx = self.weights * np.mean(dfa, axis=0)
-		dx = np.matmul(self.weights, dfa.T)	# (n_inputs, n_neurons) * (n_neurons, batch_size) = (n_inputs, batch_size?)
-		# dx = np.mean(dfa, axis=0)
+		# d(error) / d(xi)
+		dx = np.matmul(dfa, self.weights.T) # (batch_size, n_neurons) * (n_neurons, n_input) = (batch_size, n_inputs)
 		# print(f"dx {dx.shape}:\n{dx}")
+		# print(f"dx.T {dx.T.shape}:\n{dx.T}")
+
+		return dx, [dw, db]
 
 		# print(f"inputs T {self.inputs.T.shape}:\n{self.inputs.T}")
 		# print(f"weights {self.weights.shape}:\n{self.weights}")
@@ -104,7 +103,6 @@ class FullyConnected(Layer):
 		# print(f"dw {dw.shape}:\n{dw}")
 		# print(f"dx {dx.shape}:\n{dx}")
 		# exit(0)
-		return dx.T, [dw, db]
 
 	def summary(self):
 

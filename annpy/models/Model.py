@@ -3,7 +3,7 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
-from sklearn.model_selection import train_test_split
+# from sklearn.model_selection import train_test_split
 
 from annpy.losses.Loss import Loss
 from annpy.metrics.Metric import Metric
@@ -105,16 +105,6 @@ class Model():
 	def evaluate(self, model, features, target, val_metrics_on=True, return_stats=False):
 
 		prediction = model.forward(features)
-		# accuracy = None
-
-		# Loss actualisation
-		# loss_metric = self.eval_metrics[0]
-		# loss_metric.reset(save=False)
-		# loss_metric(prediction, target)
-		# loss = loss_metric.get_result()
-		# print(f"loss find: {type(loss_metric)} -> {loss}")
-
-		# print(f"val ds len: {len(features)}")
 
 		# Metrics actualisation
 		for metric in self.eval_metrics:
@@ -193,7 +183,7 @@ class Model():
 
 
 	def get_metrics_logs(self):
-		return ''.join([metric.log() for metric in self.current_metrics])
+		return ''.join(metric.log() for metric in self.current_metrics)
 
 	def reset_metrics(self, save=False):
 		for metric in self.current_metrics:

@@ -25,7 +25,8 @@ class Sequencial(Model):
 	def add(self, obj):
 		if issubclass(type(obj), Layer):
 			# Add Object into sequential model
-			obj.layer_index = len(self.sequence)
+			obj.set_layer_index(len(self.sequence))
+			# obj.layer_index = len(self.sequence)
 			self.sequence.append(obj)
 		else:
 			raise Exception(f"Object {obj} is not a child of abstact class {Layer}")
@@ -77,9 +78,9 @@ class Sequencial(Model):
 
 		return inputs
 
-import functools
+# import functools
 
-	@functools.lru_cache()
+	# @functools.lru_cache()
 	def fit(self,
 			train_features,
 			train_targets,
@@ -106,7 +107,7 @@ import functools
 				cb.on_epoch_begin()
 
 			# Dataset shuffle + split
-			batchs = self.split_dataset(train_features, train_targets)
+			batchs = self.split_dataset(self.train_features, self.train_targets)
 			# batchs = self.split_dataset(train_features, train_targets, self.batch_split)
 
 			# print(list(batchs))

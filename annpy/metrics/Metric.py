@@ -21,7 +21,7 @@ class Metric(metaclass=ABCMeta):
 		return f"-- {str(self)}: {self.get_result()} "
 
 	def __call__(self, predictions, targets):
-		
+
 		# total = self.get_mem_len_append(predictions, targets)
 		self.count += self.compute(predictions, targets)
 		self.total += 1

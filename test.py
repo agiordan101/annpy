@@ -14,7 +14,8 @@ def get_model():
 	))
 	model.add(annpy.layers.FullyConnected(
 		128,
-		activation="ReLU",
+		activation="ReLu",
+		# activation="tanh",
 	))
 	model.add(annpy.layers.FullyConnected(
 		2,
@@ -26,19 +27,15 @@ def get_model():
 		# loss="MSE",
 		# optimizer="Adam",
 		optimizer=annpy.optimizers.Adam(
-<<<<<<< HEAD
-			lr=0.002
-=======
-			lr=0.0003
->>>>>>> dd22d716030f651bbbc6e66826c6dc4804f60a95
+			lr=0.0001
 		),
 		# optimizer=annpy.optimizers.RMSProp(
 		# 	lr=0.0001,
-		# 	momentum=0.90,
+		# 	momentum=0.92,
 		# ),
 		# optimizer=annpy.optimizers.SGD(
-		# 	lr=0.1,
-		# 	# momentum=0.92,
+		# 	lr=0.2,
+		# 	momentum=0.92,
 		# ),
 		# metrics=[
 		# 	# "MSE",
@@ -66,13 +63,13 @@ model.summary()
 loss, accuracy = model.fit(
 	features,
 	targets,
-	epochs=500,
-	batch_size=30,
+	epochs=1000,
+	batch_size=60,
 	callbacks=[
-		annpy.callbacks.EarlyStopping(
-			monitor='val_BinaryCrossEntropy',
-			patience=500,
-		)
+		# annpy.callbacks.EarlyStopping(
+		# 	monitor='val_BinaryCrossEntropy',
+		# 	patience=10,
+		# )
 	],
 	# val_percent=None, # Bug
 	verbose=False

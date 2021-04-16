@@ -3,10 +3,9 @@ from annpy.optimizers.Optimizer import Optimizer
 
 
 class Adam(Optimizer):
-	m1: list = []
-	m2: list
+	# m1: list = []
 
-    def __init__(self, lr:float=0.001, beta_1=0.9, beta_2=0.999, epsilon:float=1e-07):
+    def __init__(self, lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-07):
         super().__init__(lr=lr)
 
         self.m1 : list = []
@@ -30,11 +29,14 @@ class Adam(Optimizer):
 
     def adam(self, gradient, l, wi, **kwargs) -> np.array:
 
+        # print(f"gradient {gradient.shape}:\n{gradient}")
+        # exit()
         # Moments
         self.m1[l][wi] = self.beta_1 * self.m1[l][wi] + self.beta_1_rev * gradient
-        self.m2[l][wi] = (
-            self.beta_2 * self.m2[l][wi] + self.beta_2_rev * gradient * gradient
-        )
+        self.m2[l][wi] = self.beta_2 * self.m2[l][wi] + self.beta_2_rev * gradient * gradient
+        # self.m2[l][wi] = (
+        #     self.beta_2 * self.m2[l][wi] + self.beta_2_rev * gradient * gradient
+        # )
 
         # Correction
         m1_corrected = self.m1[l][wi] / (1 - self.beta_1_pow)
