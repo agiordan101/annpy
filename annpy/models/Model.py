@@ -14,10 +14,28 @@ from annpy.optimizers.Optimizer import Optimizer
 from annpy.losses.BinaryCrossEntropy import BinaryCrossEntropy
 from annpy.metrics.RangeAccuracy import RangeAccuracy
 
+from abc import ABCMeta, abstractmethod
 
-class Model():
+class Model(metaclass=ABCMeta):
 
 	debug = []
+	# train_features: np.array
+	# train_targets: np.array
+	# val_features: np.array
+	# val_targets: np.array
+
+	@classmethod
+	def shuffle_datasets(cls, a, b, copy=False):
+
+		if copy:
+			a = a.copy()
+			b = b.copy()
+
+		seed = np.random.get_state()
+		np.random.shuffle(a)
+		np.random.set_state(seed)
+		np.random.shuffle(b)
+		return a, b
 
 	def __init__(self, input_shape, input_layer, name):
 
@@ -36,15 +54,15 @@ class Model():
 		self.accuracy = None
 
 		self.stop_trainning = False
-		self.val_metrics_on = True
+		self.val_on = True
 
-
-		# self.val_loss = BinaryCrossEntropy()
-		# self.val_accuracy = RangeAccuracy([0.5, 0.5])
-
-
+	@abstractmethod
 	def __str__(self):
-		raise NotImplementedError
+		pass
+	
+	@abstractmethod
+	def forward(self):
+		pass
 
 	def add_metric(self, metric):
 
@@ -87,31 +105,17 @@ class Model():
 		# print(self.val_metrics)
 		# exit(0)
 
-	def forward(self):
-		raise NotImplementedError
-
-	# def evaluate(self, model, features, target, val_metrics_on=True, return_stats=False):
-
-	# 	prediction = model.forward(features)
-
-	# 	self.val_loss(prediction, target)
-	# 	self.val_accuracy(prediction, target)
-
-	# 	self.val_loss.reset(save=True)
-	# 	self.val_accuracy.reset(save=True)
-
-
-
-	def evaluate(self, model, features, target, val_metrics_on=True, return_stats=False):
+	def evaluate(self, model, features, targets, return_stats=False):
 
 		prediction = model.forward(features)
+		# print(f"prediction: {prediction.shape}:\n{prediction}")
 
 		# Metrics actualisation
 		for metric in self.eval_metrics:
 
-			# print(f"val={self.val_metrics_on} -> {metric.name}")
+			# print(f"val={self.val_on} -> {metric.name}")
 			metric.reset(save=False)
-			metric(prediction, target)
+			metric(prediction, targets)
 
 			# if isinstance(metric, type(self.accuracy)):  #Opti with pre compute of val_accuracy
 			# 	accuracy = metric.get_result()
@@ -131,41 +135,45 @@ class Model():
 			val_percent,
 			verbose):
 
-		self.val_metrics_on = bool(val_percent) # merge 2 lines ?
-		# self.current_metrics = list(self.metrics.values() if self.val_metrics_on else self.train_metrics.values())
-		# self.eval_metrics = list(self.val_metrics.values() if self.val_metrics_on else self.train_metrics.values())
+		if val_features and val_targets:
+			print(f"Validation dataset is past")
+			datasets = train_features, train_targets, val_features, val_targets
+			self.val_on = True
 
-		if self.val_metrics_on:
+		elif val_percent:
+			# Split dataset in 2 -> New train dataset & validation dataset
+			print(f"Split datasets in 2 batch with val_percent={val_percent}")
+			datasets = self.train_val_split(train_features, train_targets, val_percent)
+			self.val_on = True
+
+		else:
+			print(f"No validation dataset: train dataset is using for validation")
+			datasets = train_features, train_targets, train_features, train_targets
+			self.val_on = False
+
+		self.train_features = datasets[0]
+		self.train_targets = datasets[1]
+		self.val_features = datasets[2]
+		self.val_targets = datasets[3]
+		# self.train_features = datasets[0][:]
+		# self.train_targets = datasets[1][:]
+		# self.val_features = datasets[2][:]
+		# self.val_targets = datasets[3][:]
+
+		# print(f"self.train_features: {self.train_features.shape}")
+		# print(f"self.train_targets: {self.train_targets.shape}")
+		# print(f"self.val_features: {self.val_features.shape}")
+		# print(f"self.val_targets: {self.val_targets.shape}")
+		# exit(0)
+
+
+		if self.val_on:
 			self.current_metrics = list(self.metrics.values())
 			self.eval_metrics = list(self.val_metrics.values())
 		else:
 			self.current_metrics = list(self.train_metrics.values())
 			self.eval_metrics = list(self.train_metrics.values())
 
-		# print(self.current_metrics)
-		# print(self.train_metrics)
-		# print(self.val_metrics)
-		# exit(0)
-
-		self.train_features = train_features
-		self.train_targets = train_targets
-		self.val_features = train_features
-		self.val_targets = train_targets
-
-		if val_features is None and val_percent is not None:
-			# Split dataset in 2 -> New train dataset & validation dataset
-			self.n_batch = 2
-			datasets = self.split_dataset(train_features, train_targets, [int(val_percent * len(train_features))])
-			self.train_features = datasets[1][0]
-			self.train_targets = datasets[1][1]
-			self.val_features = datasets[0][0]
-			self.val_targets = datasets[0][1]
-
-			# X_train, X_test, y_train, y_test = train_test_split(train_features, train_targets, test_size=0.2, shuffle=False)
-			# self.train_features = X_train
-			# self.train_targets = y_train
-			# self.val_features = X_test
-			# self.val_targets = y_test
 
 		# Train dataset length
 		self.ds_train_len = len(self.train_features)
@@ -195,17 +203,11 @@ class Model():
 		# for metric in self.metrics.values():
 			metric.hard_reset()
 
-
 	def split_dataset(self, a, b, shuffle=True):
 
 		# Shuffle
 		if shuffle:
-			a = a.copy()
-			b = b.copy()
-			seed = np.random.get_state()
-			np.random.shuffle(a)
-			np.random.set_state(seed)
-			np.random.shuffle(b)
+			a, b = Model.shuffle_datasets(a, b)
 
 		# Split batches
 		a = np.array_split(a, self.n_batch)
@@ -213,6 +215,14 @@ class Model():
 
 		# Merge
 		return list(zip(a, b))
+	
+	def train_val_split(self, features, targets, val_percent, shuffle=True):
+
+		if shuffle:
+			features, targets = Model.shuffle_datasets(features, targets)
+
+		i = int(val_percent * len(features))
+		return features[i:, :], targets[i:, :], features[:i, :], targets[:i, :]
 
 	def print_graph(self, metrics=[]):
 

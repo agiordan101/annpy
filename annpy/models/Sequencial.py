@@ -94,7 +94,7 @@ class Sequencial(Model):
 
 		# Callbacks TRAIN begin
 		for cb in callbacks:
-			cb.on_train_begin(model=self)
+			cb.on_train_begin()
 
 		super().fit(train_features, train_targets, batch_size, epochs, callbacks, val_features, val_targets, val_percent, verbose)
 
@@ -106,6 +106,8 @@ class Sequencial(Model):
 			for cb in callbacks:
 				cb.on_epoch_begin()
 
+			# print(f"self.train_features: {self.train_features.shape}")
+			# print(f"self.train_targets: {self.train_targets.shape}")
 			# Dataset shuffle + split
 			batchs = self.split_dataset(self.train_features, self.train_targets)
 			# batchs = self.split_dataset(train_features, train_targets, self.batch_split)
@@ -122,7 +124,9 @@ class Sequencial(Model):
 				for cb in callbacks:
 					cb.on_batch_begin()
 
-				features, target = data
+				features, targets = data
+				# print(f"features: {features.shape}")
+				# print(f"targets: {targets.shape}")
 
 				# Prediction
 				prediction = self.forward(features)
@@ -130,10 +134,10 @@ class Sequencial(Model):
 				# Metrics actualisation
 				for metric in self.train_metrics.values():
 					# print(f"train={self.val_metrics_on} -> {metric.name}")
-					metric(prediction, target)
+					metric(prediction, targets)
 
 				# Backpropagation
-				dx = self.loss.derivate(prediction, target)
+				dx = self.loss.derivate(prediction, targets)
 				gradients = [0, 0]
 				self.optimizer.gradients = []
 				for layer in self.sequence_rev:
@@ -151,8 +155,11 @@ class Sequencial(Model):
 					cb.on_batch_end()
 
 			# self.debug.append(list(self.train_metrics.values())[0].get_result())
-
+			
 			self.evaluate(self, self.val_features, self.val_targets)
+			# print(f"self.val_features: {self.val_features.shape}")
+			# print(f"self.val_targets: {self.val_targets.shape}")
+			# exit()
 
 			# Get total metrics data of this epoch
 			print(f"Metrics: {self.get_metrics_logs()}")
@@ -160,10 +167,7 @@ class Sequencial(Model):
 
 			# Callbacks EPOCH end
 			for cb in callbacks:
-				cb.on_epoch_end(
-					model=self,
-					metrics=self.metrics
-				)
+				cb.on_epoch_end(verbose=verbose)
 
 			# Save in mem & Reset metrics values
 			self.reset_metrics(save=True)

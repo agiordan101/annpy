@@ -2,5 +2,6 @@
 
 To do:
 
-	- Adam optimizer
+	- regularizer
+	- EarlyStopping save weights
 	- Dropout layer

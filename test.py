@@ -9,11 +9,11 @@ def get_model():
 	model = annpy.models.Sequencial(input_shape=29, name="First model")
 
 	model.add(annpy.layers.FullyConnected(
-		256,
+		64,
 		activation="ReLU",
 	))
 	model.add(annpy.layers.FullyConnected(
-		128,
+		32,
 		activation="ReLu",
 		# activation="tanh",
 	))
@@ -27,14 +27,14 @@ def get_model():
 		# loss="MSE",
 		# optimizer="Adam",
 		optimizer=annpy.optimizers.Adam(
-			lr=0.0001
+			lr=0.002
 		),
 		# optimizer=annpy.optimizers.RMSProp(
-		# 	lr=0.0001,
+		# 	lr=0.0005,
 		# 	momentum=0.92,
 		# ),
 		# optimizer=annpy.optimizers.SGD(
-		# 	lr=0.2,
+		# 	lr=0.02,
 		# 	momentum=0.92,
 		# ),
 		# metrics=[
@@ -63,15 +63,16 @@ model.summary()
 loss, accuracy = model.fit(
 	features,
 	targets,
-	epochs=1000,
-	batch_size=60,
+	epochs=400,
+	batch_size=30,
 	callbacks=[
-		# annpy.callbacks.EarlyStopping(
-		# 	monitor='val_BinaryCrossEntropy',
-		# 	patience=10,
-		# )
+		annpy.callbacks.EarlyStopping(
+			model=model,
+			monitor='val_BinaryCrossEntropy',
+			patience=15,
+		)
 	],
-	# val_percent=None, # Bug
+	val_percent=0.2,
 	verbose=False
 )
 

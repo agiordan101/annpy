@@ -84,10 +84,12 @@ class FullyConnected(Layer):
 		# print(f"db {db.shape}:\n{db}")
 
 		# d(error) / d(xi)
+		# dx = np.matmul(self.weights, dfa.T) # (batch_size, n_neurons) * (n_neurons, n_input) = (batch_size, n_inputs)
 		dx = np.matmul(dfa, self.weights.T) # (batch_size, n_neurons) * (n_neurons, n_input) = (batch_size, n_inputs)
 		# print(f"dx {dx.shape}:\n{dx}")
 		# print(f"dx.T {dx.T.shape}:\n{dx.T}")
 
+		# return dx.T, [dw, db]
 		return dx, [dw, db]
 
 		# print(f"inputs T {self.inputs.T.shape}:\n{self.inputs.T}")
