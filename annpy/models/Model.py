@@ -36,6 +36,30 @@ class Model(metaclass=ABCMeta):
 		np.random.set_state(seed)
 		np.random.shuffle(b)
 		return a, b
+	
+	@classmethod
+	def train_val_split(cls, features, targets, val_percent, shuffle=True):
+
+		if shuffle:
+			features, targets = cls.shuffle_datasets(features, targets)
+
+		i = int(val_percent * len(features))
+		return features[i:, :], targets[i:, :], features[:i, :], targets[:i, :]
+
+	@classmethod
+	def split_dataset_batches(cls, a, b, n_batch, shuffle=True):
+
+		# Shuffle
+		if shuffle:
+			a, b = cls.shuffle_datasets(a, b)
+
+		# Split batches
+		a = np.array_split(a, n_batch)
+		b = np.array_split(b, n_batch)
+
+		# Merge
+		return list(zip(a, b))
+
 
 	def __init__(self, input_shape, input_layer, name):
 
@@ -43,11 +67,21 @@ class Model(metaclass=ABCMeta):
 		self.input_shape = input_shape
 		self.weights = None
 
+		"""
+			Metric data storage:
+				- val_metrics with all validation/evaluation metrics
+				- train_metrics with all metrics use in fit
+				- current_metrics with train_metrics or val_metrics/train_metrics
+			
+			Probleme: Les dict doivent etre toujours cree ? 
+						Ou cree seulement lorsque le fit en as besoin ?
+		"""
+
 		self.metrics = {}				# All metrics used for all fitting (train & validation)
 		self.train_metrics = {}			# Metrics use on train dataset
-		self.val_metrics = {}			# Metrics use on valid dataset
-		self.current_metrics = {}		# Metrics use on train/valid dataset.s in one fitting (If no validation dataset is asked, same references as self.train_metrics, overwise as self.metrics)
-		self.eval_metrics = {}			# Metrics use to validate each epoch in one fitting
+		self.val_metrics = {}			# Metrics use on valid dataset (tmp var for compile)
+		self.current_metrics = {}		# Metrics use on train/valid datasets
+		self.eval_metrics = {}			# Metrics use to validate each epoch
 
 		self.loss = None
 		self.optimizer = None
@@ -143,7 +177,7 @@ class Model(metaclass=ABCMeta):
 		elif val_percent:
 			# Split dataset in 2 -> New train dataset & validation dataset
 			print(f"Split datasets in 2 batch with val_percent={val_percent}")
-			datasets = self.train_val_split(train_features, train_targets, val_percent)
+			datasets = Model.train_val_split(train_features, train_targets, val_percent)
 			self.val_on = True
 
 		else:
@@ -160,12 +194,10 @@ class Model(metaclass=ABCMeta):
 		# self.val_features = datasets[2][:]
 		# self.val_targets = datasets[3][:]
 
-		# print(f"self.train_features: {self.train_features.shape}")
-		# print(f"self.train_targets: {self.train_targets.shape}")
-		# print(f"self.val_features: {self.val_features.shape}")
-		# print(f"self.val_targets: {self.val_targets.shape}")
-		# exit(0)
-
+		print(f"self.train_features: {self.train_features.shape}")
+		print(f"self.train_targets: {self.train_targets.shape}")
+		print(f"self.val_features: {self.val_features.shape}")
+		print(f"self.val_targets: {self.val_targets.shape}")
 
 		if self.val_on:
 			self.current_metrics = list(self.metrics.values())
@@ -174,6 +206,10 @@ class Model(metaclass=ABCMeta):
 			self.current_metrics = list(self.train_metrics.values())
 			self.eval_metrics = list(self.train_metrics.values())
 
+		print(f"Current metrics:\n{self.current_metrics}")
+		print(f"Eval metrics:\n{self.eval_metrics}")
+		print(f"Eval metrics:\n{self.eval_metrics}")
+		# exit(0)
 
 		# Train dataset length
 		self.ds_train_len = len(self.train_features)
@@ -202,27 +238,6 @@ class Model(metaclass=ABCMeta):
 		for metric in self.current_metrics:
 		# for metric in self.metrics.values():
 			metric.hard_reset()
-
-	def split_dataset(self, a, b, shuffle=True):
-
-		# Shuffle
-		if shuffle:
-			a, b = Model.shuffle_datasets(a, b)
-
-		# Split batches
-		a = np.array_split(a, self.n_batch)
-		b = np.array_split(b, self.n_batch)
-
-		# Merge
-		return list(zip(a, b))
-	
-	def train_val_split(self, features, targets, val_percent, shuffle=True):
-
-		if shuffle:
-			features, targets = Model.shuffle_datasets(features, targets)
-
-		i = int(val_percent * len(features))
-		return features[i:, :], targets[i:, :], features[:i, :], targets[:i, :]
 
 	def print_graph(self, metrics=[]):
 

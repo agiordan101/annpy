@@ -33,7 +33,7 @@ class Sequencial(Model):
 
 	def compile(self,
 				loss="MSE",
-				optimizer="SGD",
+				optimizer="Adam",
 				metrics=[]):
 		
 		# Save loss, optimizer and metrics
@@ -78,9 +78,6 @@ class Sequencial(Model):
 
 		return inputs
 
-# import functools
-
-	# @functools.lru_cache()
 	def fit(self,
 			train_features,
 			train_targets,
@@ -90,13 +87,14 @@ class Sequencial(Model):
 			val_features=None,
 			val_targets=None,
 			val_percent=0.2,
-			verbose=True):
+			verbose=True,
+			print_graph=True):
+
+		super().fit(train_features, train_targets, batch_size, epochs, callbacks, val_features, val_targets, val_percent, verbose)
 
 		# Callbacks TRAIN begin
 		for cb in callbacks:
 			cb.on_train_begin()
-
-		super().fit(train_features, train_targets, batch_size, epochs, callbacks, val_features, val_targets, val_percent, verbose)
 
 		for epoch in range(epochs):
 
@@ -109,8 +107,8 @@ class Sequencial(Model):
 			# print(f"self.train_features: {self.train_features.shape}")
 			# print(f"self.train_targets: {self.train_targets.shape}")
 			# Dataset shuffle + split
-			batchs = self.split_dataset(self.train_features, self.train_targets)
-			# batchs = self.split_dataset(train_features, train_targets, self.batch_split)
+			batchs = Model.split_dataset_batches(self.train_features, self.train_targets, self.n_batch)
+			# batchs = Model.split_dataset_batches(train_features, train_targets, self.batch_split, self.n_batch)
 
 			# print(list(batchs))
 			# for step, (features, target) in enumerate(batchs):
@@ -125,8 +123,8 @@ class Sequencial(Model):
 					cb.on_batch_begin()
 
 				features, targets = data
-				# print(f"features: {features.shape}")
-				# print(f"targets: {targets.shape}")
+				print(f"features: {features.shape}")
+				print(f"targets: {targets.shape}")
 
 				# Prediction
 				prediction = self.forward(features)
@@ -175,7 +173,8 @@ class Sequencial(Model):
 			if self.stop_trainning:
 				break
 
-		self.print_graph()
+		if print_graph:
+			self.print_graph()
 
 		# Callbacks TRAIN end
 		for cb in callbacks:

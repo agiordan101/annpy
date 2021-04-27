@@ -56,6 +56,14 @@ data.parse_dataset(dataset_path="ressources/data.csv",
 data.normalize()
 features, targets = data.get_data(binary_targets=['B', 'M'])
 
+
+# from annpy.models.Model import Model
+# batchs = Model.split_dataset_batches(features, targets, 10)
+# for f, t in batchs:
+# 	print(f.shape)
+# 	print(t.shape)
+# exit(0)
+
 model = get_model()
 model.summary()
 # model.deepsummary()
@@ -64,16 +72,17 @@ loss, accuracy = model.fit(
 	features,
 	targets,
 	epochs=400,
-	batch_size=30,
+	batch_size=50,
 	callbacks=[
 		annpy.callbacks.EarlyStopping(
 			model=model,
-			monitor='val_BinaryCrossEntropy',
-			patience=15,
+			monitor='BinaryCrossEntropy',
+			patience=5,
 		)
 	],
-	val_percent=0.2,
-	verbose=False
+	# val_percent=None,
+	verbose=False,
+	# print_graph=False
 )
 
 # loss, accuracy = model.fit(

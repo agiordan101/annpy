@@ -8,7 +8,7 @@ class Adam(Optimizer):
     def __init__(self, lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-07):
         super().__init__(lr=lr)
 
-        self.m1 : list = []
+        self.m1:list = []
         self.m2 = []
         self.beta_1 = beta_1
         self.beta_2 = beta_2

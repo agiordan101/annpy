@@ -19,28 +19,27 @@ class EarlyStopping(Callback):
 		self.patience = patience
 		self.mode = mode
 
-		# if mode == 'auto':
-		# 	if 'loss' in monitor.lower():
-		# 		mode = 'min'
-		# 	elif 'accuracy' in monitor.lower():
-		# 		mode = 'max'
-		# 	else:
-
 	def on_train_begin(self, **kwargs):
 
-		if self.monitor in self.model.metrics:
-
-			self.best_val = np.inf
-			self.fails = 0
-
-			if self.mode == 'auto':
-				self.mode = self.model.metrics[self.monitor].get_variation_goal()
+		self.metric = None
+		print(f"Metrics:\n{self.model.current_metrics}")
+		for m in self.model.current_metrics:
 			
-			self.sign = 1 if self.mode == 'min' else -1
+			if str(m) == self.monitor:
+				self.metric = m
+				break
 
-		else:
-			print(f"Metrics:\n{model.metrics}")
-			raise Exception(f"Metric argument in EarlyStopping constructor isn't exist: '{self.monitor}'")
+		if not self.metric:
+			print(f"Metrics:\n{self.model.current_metrics}")
+			raise Exception(f"EarlyStopping constructor: Unable to find monitored metric {self.monitor} in this model")
+
+		self.best_val = np.inf
+		self.fails = 0
+
+		if self.mode == 'auto':
+			self.mode = self.metric.get_variation_goal()
+		
+		self.sign = 1 if self.mode == 'min' else -1
 
 	def on_epoch_begin(self, **kwargs):
 		pass
@@ -53,8 +52,8 @@ class EarlyStopping(Callback):
 	
 	def on_epoch_end(self, verbose=True, **kwargs):
 
-		# value = self.model.current_metrics[self.monitor].get_result() * self.sign
-		value = self.model.metrics[self.monitor].get_result() * self.sign
+		value = self.metric.get_result() * self.sign
+		# value = self.model.metrics[self.monitor].get_result() * self.sign
 
 		# print(f"Mode={self.mode}: {value} < {self.best_val} - {self.min_delta}")
 
@@ -63,11 +62,6 @@ class EarlyStopping(Callback):
 			self.fails = 0
 
 		else:
-			# if value > self.best_val + 0.5:
-			# 	print(f"WTTF bestval:{self.best_val}\tvalue:{value}")
-			# 	exit(0)
-			# print(f"FAIL {self.monitor} :{abs(self.best_val)}\tvalue:{value}")
-
 			self.fails += 1
 			if self.fails > self.patience:
 				if verbose:
