@@ -1,14 +1,14 @@
 import annpy
 import numpy as np
 from annpy.layers.Layer import Layer
-from annpy.activations.Linear import Linear
+from annpy.activations.ReLU import ReLU
 
 class FullyConnected(Layer):
 
 	def __init__(self,
 					output_shape,
 					input_shape=None,
-					activation=Linear,
+					activation=ReLU,
 					kernel_initializer='GlorotUniform',
 					bias_initializer='Zeros',
 					name="Default layers name"):

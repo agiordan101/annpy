@@ -9,3 +9,6 @@ class Tanh(Activation):
 	def derivate(self, x):
 		tanhx = self(x)
 		return 1 - tanhx * tanhx
+
+	def __str__(self):
+		return "TanH"

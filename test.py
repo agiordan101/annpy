@@ -4,9 +4,9 @@ import annpy
 from DataProcessing import DataProcessing
 import numpy as np
 
-def get_model():
+def get_model(input_shape):
 
-	model = annpy.models.Sequencial(input_shape=29, name="First model")
+	model = annpy.models.Sequencial(input_shape=input_shape, name="First model")
 
 	model.add(annpy.layers.FullyConnected(
 		64,
@@ -14,7 +14,7 @@ def get_model():
 	))
 	model.add(annpy.layers.FullyConnected(
 		32,
-		activation="ReLu",
+		activation="ReLU",
 		# activation="tanh",
 	))
 	model.add(annpy.layers.FullyConnected(
@@ -25,22 +25,14 @@ def get_model():
 	model.compile(
 		loss="BinaryCrossEntropy",
 		# loss="MSE",
-		# optimizer="Adam",
-		optimizer=annpy.optimizers.Adam(
-			lr=0.002
-		),
-		# optimizer=annpy.optimizers.RMSProp(
-		# 	lr=0.0005,
-		# 	momentum=0.92,
+		optimizer="Adam",
+		# optimizer=annpy.optimizers.Adam(
+		# 	lr=0.001
 		# ),
 		# optimizer=annpy.optimizers.SGD(
-		# 	lr=0.02,
+		# 	lr=0.2,
 		# 	momentum=0.92,
 		# ),
-		# metrics=[
-		# 	# "MSE",
-		# 	annpy.metrics.RangeAccuracy([0.5, 0.5])
-		# ]
 		metrics=["RangeAccuracy"]
 	)
 	return model
@@ -51,43 +43,26 @@ if len(sys.argv) < 2:
 data = DataProcessing()
 # data.load_data("ressources/normalization.txt", normalization=True)
 data.parse_dataset(dataset_path="ressources/data.csv",
-					columns_range=[1, -1],
+					columns_range=[1, None],
 					target_index=0)
 data.normalize()
 features, targets = data.get_data(binary_targets=['B', 'M'])
 
-
-# from annpy.models.Model import Model
-# batchs = Model.split_dataset_batches(features, targets, 10)
-# for f, t in batchs:
-# 	print(f.shape)
-# 	print(t.shape)
-# exit(0)
-
-model = get_model()
+model = get_model(features[0].shape[0])
 model.summary()
 # model.deepsummary()
 
 loss, accuracy = model.fit(
 	features,
 	targets,
-	epochs=400,
-	batch_size=50,
+	epochs=200,
+	batch_size=42,
 	callbacks=[
-		annpy.callbacks.EarlyStopping(
-			model=model,
-			monitor='BinaryCrossEntropy',
-			patience=5,
-		)
+		# annpy.callbacks.EarlyStopping(
+		# 	monitor='val_BinaryCrossEntropy',
+		# 	patience=10,
+		# )
 	],
-	# val_percent=None,
-	verbose=False,
-	# print_graph=False
+	# val_percent=None, # Bug
+	verbose=False
 )
-
-# loss, accuracy = model.fit(
-# 	features,
-# 	targets,
-# 	epochs=7,
-# 	verbose=True
-# )

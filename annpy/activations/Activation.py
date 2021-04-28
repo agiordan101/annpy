@@ -11,6 +11,6 @@ class Activation(metaclass=ABCMeta):
 	def derivate(self, x):
 		pass
 
-	# @abstractmethod
-	# def __str__(self):
-	# 	return "Activation"
+	@abstractmethod
+	def __str__(self):
+		pass

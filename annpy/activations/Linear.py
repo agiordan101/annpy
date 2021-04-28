@@ -8,5 +8,5 @@ class Linear(Activation):
 	def derivate(self, x):
 		return 1.
 
-	# def __str__(self):
-	# 	return "Linear"
+	def __str__(self):
+		return "Linear"

@@ -9,5 +9,5 @@ class ReLU(Activation):
 	def derivate(self, x):
 		return np.where(x < 0, 0., 1.)
 
-	# def __str__(self):
-	# 	return "ReLU"
+	def __str__(self):
+		return "ReLU"

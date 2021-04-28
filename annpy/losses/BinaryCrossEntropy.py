@@ -3,15 +3,17 @@ from annpy.losses.Loss import Loss
 
 class BinaryCrossEntropy(Loss):
 
-	def __init__(self):
+	def __init__(self, epsilon=1e-07):
 		super().__init__()
 		self.name = "BinaryCrossEntropy"
+		self.epsilon = epsilon
 
 	def BCE(self, prediction, target):
 		# print(f"prediction {prediction.shape}:\n{prediction}")
 
-		ret = np.mean(np.where(target == 1, np.log(prediction), np.log(1 - prediction)))
-		# ret = np.mean(target * np.log(prediction) + (1 - target) * np.log(1 - prediction))
+		# ret = np.mean(np.where(target == 1, np.log(prediction), np.log(1 - prediction)))
+
+		ret = np.mean(target * np.log(prediction + self.epsilon) + (1 - target) * np.log(1 - prediction + self.epsilon))
 		# print(f"ret {ret.shape}:\n{ret}")
 		# exit()
 		return ret

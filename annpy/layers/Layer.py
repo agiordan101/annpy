@@ -1,9 +1,9 @@
 import annpy
-from abc import ABCMeta, abstractmethod
 from annpy.utils.parse import parse_object
 from annpy.activations.Activation import Activation
-from annpy.activations.Linear import Linear
 from annpy.initializers.Initializer import Initializer
+
+from abc import ABCMeta, abstractmethod
 
 class Layer(metaclass=ABCMeta):
 

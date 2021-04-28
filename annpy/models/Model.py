@@ -1,18 +1,14 @@
 import annpy
+from annpy.losses.Loss import Loss
+from annpy.losses.BinaryCrossEntropy import BinaryCrossEntropy
+from annpy.metrics.Metric import Metric
+from annpy.metrics.Accuracy import Accuracy
+from annpy.metrics.RangeAccuracy import RangeAccuracy
+from annpy.optimizers.Optimizer import Optimizer
+
 import numpy as np
 import pandas as pd
 import plotly.express as px
-
-# from sklearn.model_selection import train_test_split
-
-from annpy.losses.Loss import Loss
-from annpy.metrics.Metric import Metric
-from annpy.metrics.Accuracy import Accuracy
-from annpy.optimizers.Optimizer import Optimizer
-
-
-from annpy.losses.BinaryCrossEntropy import BinaryCrossEntropy
-from annpy.metrics.RangeAccuracy import RangeAccuracy
 
 from abc import ABCMeta, abstractmethod
 
@@ -36,7 +32,7 @@ class Model(metaclass=ABCMeta):
 		np.random.set_state(seed)
 		np.random.shuffle(b)
 		return a, b
-	
+
 	@classmethod
 	def train_val_split(cls, features, targets, val_percent, shuffle=True):
 
@@ -46,20 +42,22 @@ class Model(metaclass=ABCMeta):
 		i = int(val_percent * len(features))
 		return features[i:, :], targets[i:, :], features[:i, :], targets[:i, :]
 
-	@classmethod
-	def split_dataset_batches(cls, a, b, n_batch, shuffle=True):
+	# @classmethod
+	# def split_dataset_batches(cls, a, b, n_batch, shuffle=True):
 
-		# Shuffle
-		if shuffle:
-			a, b = cls.shuffle_datasets(a, b)
+	# 	# Shuffle
+	# 	if shuffle:
+	# 		a, b = cls.shuffle_datasets(a, b)
 
-		# Split batches
-		a = np.array_split(a, n_batch)
-		b = np.array_split(b, n_batch)
+	# 	# Split batches
+	# 	a = np.array_split(a, n_batch)
+	# 	b = np.array_split(b, n_batch)
 
-		# Merge
-		return list(zip(a, b))
+	# 	# a = np.array_split(a[:batch_size * (n_batch - 1)], n_batch - 1)
+	# 	# b = np.array_split(b[:batch_size * (n_batch - 1)], n_batch - 1)
 
+	# 	# Merge
+	# 	return list(zip(a, b))
 
 	def __init__(self, input_shape, input_layer, name):
 
@@ -107,11 +105,10 @@ class Model(metaclass=ABCMeta):
 		self.metrics[str(metric)] = metric
 		self.train_metrics[str(metric)] = metric
 
-
 	def compile(self, loss, optimizer, metrics):
 
 		if not isinstance(metrics, list):
-			raise Exception("Metrics parameter in Model.compile() is not a list")
+			raise Exception("Error: Model: Metrics parameter in compile() is not a list")
 
 		self.optimizer = annpy.utils.parse.parse_object(optimizer, Optimizer)
 
@@ -138,6 +135,7 @@ class Model(metaclass=ABCMeta):
 		# print(self.train_metrics)
 		# print(self.val_metrics)
 		# exit(0)
+
 
 	def evaluate(self, model, features, targets, return_stats=False):
 
@@ -189,15 +187,11 @@ class Model(metaclass=ABCMeta):
 		self.train_targets = datasets[1]
 		self.val_features = datasets[2]
 		self.val_targets = datasets[3]
-		# self.train_features = datasets[0][:]
-		# self.train_targets = datasets[1][:]
-		# self.val_features = datasets[2][:]
-		# self.val_targets = datasets[3][:]
 
-		print(f"self.train_features: {self.train_features.shape}")
-		print(f"self.train_targets: {self.train_targets.shape}")
-		print(f"self.val_features: {self.val_features.shape}")
-		print(f"self.val_targets: {self.val_targets.shape}")
+		# print(f"self.train_features: {self.train_features.shape}")
+		# print(f"self.train_targets: {self.train_targets.shape}")
+		# print(f"self.val_features: {self.val_features.shape}")
+		# print(f"self.val_targets: {self.val_targets.shape}")
 
 		if self.val_on:
 			self.current_metrics = list(self.metrics.values())
@@ -206,25 +200,51 @@ class Model(metaclass=ABCMeta):
 			self.current_metrics = list(self.train_metrics.values())
 			self.eval_metrics = list(self.train_metrics.values())
 
-		print(f"Current metrics:\n{self.current_metrics}")
-		print(f"Eval metrics:\n{self.eval_metrics}")
-		print(f"Eval metrics:\n{self.eval_metrics}")
+		# print(f"Current metrics:\n{self.current_metrics}")
+		# print(f"Eval metrics:\n{self.eval_metrics}")
+		# print(f"Eval metrics:\n{self.eval_metrics}")
 		# exit(0)
-
-		# Train dataset length
-		self.ds_train_len = len(self.train_features)
 
 		# Batchs number
-		self.n_batch = self.ds_train_len // batch_size + (1 if self.ds_train_len % batch_size else 0)
+		self.last_batch_size = len(self.train_features) % batch_size
+		self.n_batch_full = len(self.train_features) // batch_size
+		self.n_batch = self.n_batch_full + 1 if self.last_batch_size else self.n_batch_full
+		print(f"batch_size: {batch_size}\tn_batch_full: {self.n_batch_full}\tlast_batch_size: {self.last_batch_size}")
 
+		# exit(0)
 		# Split dataset into <n_batch> batch of len <batch_size>
 		# self.batch_split = list(range(0, self.ds_train_len, batch_size))[1:]
-		# print(self.batch_split)
-		# exit(0)
 
 		# Reset metrics for new model fit
 		self.hard_reset_metrics()
 
+	def batchs_split(self, shuffle=True):
+
+		# Shuffle
+		if shuffle:
+			a, b = Model.shuffle_datasets(self.train_features, self.train_targets, copy=False)
+		
+		if self.last_batch_size:
+			last_f = a[-self.last_batch_size:]
+			last_t = b[-self.last_batch_size:]
+
+			a = a[:-self.last_batch_size]
+			b = b[:-self.last_batch_size]
+
+			# Split batches
+			a = np.array_split(a, self.n_batch_full)
+			b = np.array_split(b, self.n_batch_full)
+
+			a.append(last_f)
+			b.append(last_t)
+
+		else:
+			# Just Split batches
+			a = np.array_split(a, self.n_batch_full)
+			b = np.array_split(b, self.n_batch_full)
+
+		# Merge
+		return list(zip(a, b))
 
 	def get_metrics_logs(self):
 		return ''.join(metric.log() for metric in self.current_metrics)

@@ -30,7 +30,7 @@ class DataProcessing():
 	def parse_dataset(self,
 						dataset_path,
 						columns_name=[],
-						columns_range=[0, -1],
+						columns_range=[0, None],
 						rows_range=[0, -1],
 						parse_targets=True,
 						target_index=1):
@@ -47,9 +47,10 @@ class DataProcessing():
 			for feature in columns_name:
 				features[feature] = []
 
+		features_str_split = features_str.split("\n")[rows_range[0]:rows_range[1]] if rows_range[1] else features_str.split("\n")[rows_range[0]:]
 		# Fill
-		for student_str in features_str.split("\n")[rows_range[0]:rows_range[1]]:
-			student_strlst = student_str.split(',')[columns_range[0]:columns_range[1]]
+		for student_str in features_str_split:
+			student_strlst = student_str.split(',')[columns_range[0]:columns_range[1]] if columns_range[1] else student_str.split(',')[columns_range[0]:]
 
 			if not features:
 				for i in range(len(student_strlst) - (1 if parse_targets else 0)):

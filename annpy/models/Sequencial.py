@@ -1,9 +1,8 @@
 import annpy
-import numpy as np
-
 from annpy.models.Model import Model
 from annpy.layers.Layer import Layer
-# from annpy.metrics.Metric import metrics_data_to_str
+
+import numpy as np
 
 class Sequencial(Model):
 
@@ -22,14 +21,14 @@ class Sequencial(Model):
 	def __str__(self):
 		return "Sequential"
 
-	def add(self, obj):
-		if issubclass(type(obj), Layer):
+	def add(self, layer):
+
+		if issubclass(type(layer), Layer):
 			# Add Object into sequential model
-			obj.set_layer_index(len(self.sequence))
-			# obj.layer_index = len(self.sequence)
-			self.sequence.append(obj)
+			layer.set_layer_index(len(self.sequence))
+			self.sequence.append(layer)
 		else:
-			raise Exception(f"Object {obj} is not a child of abstact class {Layer}")
+			raise Exception(f"Object {layer} is not a child of abstact class {Layer}")
 
 	def compile(self,
 				loss="MSE",
@@ -51,7 +50,7 @@ class Sequencial(Model):
 		# self.weightsB:	[[w0, b0], [..., ...], [wn, bn]]
 		self.weightsB = []
 		for layer in self.sequence:
-			# print(f"New layer to compile {input_shape}")
+
 			weightsB = layer.compile(input_shape)
 			self.weightsB.append(weightsB)
 
@@ -107,15 +106,16 @@ class Sequencial(Model):
 			# print(f"self.train_features: {self.train_features.shape}")
 			# print(f"self.train_targets: {self.train_targets.shape}")
 			# Dataset shuffle + split
-			batchs = Model.split_dataset_batches(self.train_features, self.train_targets, self.n_batch)
-			# batchs = Model.split_dataset_batches(train_features, train_targets, self.batch_split, self.n_batch)
+			batchs = self.batchs_split()
+			# batchs = Model.split_dataset_batches(train_features, train_targets, self.n_batch)
 
-			# print(list(batchs))
+			print(f"{len(batchs) - 1} batches with shape : {batchs[0][0].shape}")
+			print(f"1 batch with shape : {batchs[-1][0].shape}")
 			# for step, (features, target) in enumerate(batchs):
 			for step, data in enumerate(batchs):
 
 				if verbose:
-					print(f"STEP={step}/{self.n_batch - 1}")
+					print(f"STEP={step}/{self.n_batch_full}")
 					# print(f"STEP={step}/{self.n_batch - 1}\tloss: {self.loss.get_result()}")
 
 				# Callbacks BATCH begin
@@ -123,8 +123,8 @@ class Sequencial(Model):
 					cb.on_batch_begin()
 
 				features, targets = data
-				print(f"features: {features.shape}")
-				print(f"targets: {targets.shape}")
+				# print(f"features: {features.shape}")
+				# print(f"targets: {targets.shape}")
 
 				# Prediction
 				prediction = self.forward(features)
