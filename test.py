@@ -55,8 +55,8 @@ model.summary()
 loss, accuracy = model.fit(
 	features,
 	targets,
-	epochs=200,
-	batch_size=42,
+	epochs=300,
+	batch_size=100,
 	callbacks=[
 		# annpy.callbacks.EarlyStopping(
 		# 	monitor='val_BinaryCrossEntropy',

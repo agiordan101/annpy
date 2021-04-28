@@ -23,8 +23,8 @@ class EarlyStopping(Callback):
 	def on_train_begin(self, **kwargs):
 
 		self.metric = None
-		# print(f"Metrics:\n{self.model.current_metrics}")
-		for m in self.model.current_metrics:
+		# print(f"Metrics:\n{self.model.metrics}")
+		for m in self.model.metrics:
 
 			print(str(m))
 			if str(m) == self.monitor:
@@ -32,7 +32,7 @@ class EarlyStopping(Callback):
 				break
 
 		if not self.metric:
-			print(f"Metrics:\n{self.model.current_metrics}")
+			print(f"Metrics:\n{self.model.metrics}")
 			raise Exception(f"EarlyStopping constructor: Unable to find monitored metric {self.monitor} in this model")
 
 		self.best_val = np.inf

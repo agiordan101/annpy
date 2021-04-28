@@ -106,8 +106,8 @@ class Sequencial(Model):
 			batchs = self.batchs_split()
 			# batchs = self.batchs_split(train_features, train_targets, self.batch_split)
 			
-			for b in batchs:
-				print(f"batch shape : {b[0].shape}")
+			# for b in batchs:
+			# 	print(f"batch shape : {b[0].shape}")
 			# print(f"{len(batchs) - 1} batches with shape : {batchs[0][0].shape}")
 			# print(f"1 batch with shape : {batchs[-1][0].shape}")
 			
@@ -129,7 +129,7 @@ class Sequencial(Model):
 				prediction = self.forward(features)
 
 				# Metrics actualisation
-				for metric in self.train_metrics.values():
+				for metric in self.metrics.values():
 					# print(f"train={self.val_metrics_on} -> {metric.name}")
 					metric(prediction, target)
 
@@ -151,7 +151,7 @@ class Sequencial(Model):
 				for cb in callbacks:
 					cb.on_batch_end()
 
-			# self.debug.append(list(self.train_metrics.values())[0].get_result())
+			# self.debug.append(list(self.metrics.values())[0].get_result())
 
 			self.evaluate(self, self.val_features, self.val_targets)
 

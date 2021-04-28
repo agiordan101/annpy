@@ -184,7 +184,7 @@ class Model():
 		# Shuffle
 		if shuffle:
 			a, b = Model.shuffle_datasets(self.train_features, self.train_targets, copy=False)
-		
+
 		if self.last_batch_size:
 			last_f = a[-self.last_batch_size:]
 			last_t = b[-self.last_batch_size:]
