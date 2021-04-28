@@ -3,6 +3,7 @@ from abc import ABCMeta, abstractmethod
 # Kwargs is necessary because some childs callbacks would not take arguments of other callbacks
 class Callback():
 
+	@abstractmethod
 	def __init__(self, model):
 		self.model = model
 

@@ -10,15 +10,9 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
-from abc import ABCMeta, abstractmethod
-
-class Model(metaclass=ABCMeta):
+class Model():
 
 	debug = []
-	# train_features: np.array
-	# train_targets: np.array
-	# val_features: np.array
-	# val_targets: np.array
 
 	@classmethod
 	def shuffle_datasets(cls, a, b, copy=False):
@@ -41,23 +35,6 @@ class Model(metaclass=ABCMeta):
 
 		i = int(val_percent * len(features))
 		return features[i:, :], targets[i:, :], features[:i, :], targets[:i, :]
-
-	# @classmethod
-	# def split_dataset_batches(cls, a, b, n_batch, shuffle=True):
-
-	# 	# Shuffle
-	# 	if shuffle:
-	# 		a, b = cls.shuffle_datasets(a, b)
-
-	# 	# Split batches
-	# 	a = np.array_split(a, n_batch)
-	# 	b = np.array_split(b, n_batch)
-
-	# 	# a = np.array_split(a[:batch_size * (n_batch - 1)], n_batch - 1)
-	# 	# b = np.array_split(b[:batch_size * (n_batch - 1)], n_batch - 1)
-
-	# 	# Merge
-	# 	return list(zip(a, b))
 
 	def __init__(self, input_shape, input_layer, name):
 
@@ -87,14 +64,10 @@ class Model(metaclass=ABCMeta):
 
 		self.stop_trainning = False
 		self.val_on = True
+		self.val_metrics_on = True # USELESS ??????
 
-	@abstractmethod
 	def __str__(self):
-		pass
-	
-	@abstractmethod
-	def forward(self):
-		pass
+		raise NotImplementedError
 
 	def add_metric(self, metric):
 
@@ -136,18 +109,19 @@ class Model(metaclass=ABCMeta):
 		# print(self.val_metrics)
 		# exit(0)
 
+	def forward(self):
+		raise NotImplementedError
 
-	def evaluate(self, model, features, targets, return_stats=False):
+	def evaluate(self, model, features, target, val_metrics_on=True, return_stats=False):
 
 		prediction = model.forward(features)
-		# print(f"prediction: {prediction.shape}:\n{prediction}")
 
 		# Metrics actualisation
 		for metric in self.eval_metrics:
 
-			# print(f"val={self.val_on} -> {metric.name}")
+			# print(f"val={self.val_metrics_on} -> {metric.name}")
 			metric.reset(save=False)
-			metric(prediction, targets)
+			metric(prediction, target)
 
 			# if isinstance(metric, type(self.accuracy)):  #Opti with pre compute of val_accuracy
 			# 	accuracy = metric.get_result()
@@ -155,6 +129,7 @@ class Model(metaclass=ABCMeta):
 
 		if return_stats:
 			return self.loss.get_result(), self.accuracy.get_result()
+
 
 	def fit(self,
 			train_features,
@@ -188,11 +163,6 @@ class Model(metaclass=ABCMeta):
 		self.val_features = datasets[2]
 		self.val_targets = datasets[3]
 
-		# print(f"self.train_features: {self.train_features.shape}")
-		# print(f"self.train_targets: {self.train_targets.shape}")
-		# print(f"self.val_features: {self.val_features.shape}")
-		# print(f"self.val_targets: {self.val_targets.shape}")
-
 		if self.val_on:
 			self.current_metrics = list(self.metrics.values())
 			self.eval_metrics = list(self.val_metrics.values())
@@ -200,20 +170,11 @@ class Model(metaclass=ABCMeta):
 			self.current_metrics = list(self.train_metrics.values())
 			self.eval_metrics = list(self.train_metrics.values())
 
-		# print(f"Current metrics:\n{self.current_metrics}")
-		# print(f"Eval metrics:\n{self.eval_metrics}")
-		# print(f"Eval metrics:\n{self.eval_metrics}")
-		# exit(0)
-
 		# Batchs number
 		self.last_batch_size = len(self.train_features) % batch_size
 		self.n_batch_full = len(self.train_features) // batch_size
 		self.n_batch = self.n_batch_full + 1 if self.last_batch_size else self.n_batch_full
 		print(f"batch_size: {batch_size}\tn_batch_full: {self.n_batch_full}\tlast_batch_size: {self.last_batch_size}")
-
-		# exit(0)
-		# Split dataset into <n_batch> batch of len <batch_size>
-		# self.batch_split = list(range(0, self.ds_train_len, batch_size))[1:]
 
 		# Reset metrics for new model fit
 		self.hard_reset_metrics()

@@ -86,14 +86,13 @@ class Sequencial(Model):
 			val_features=None,
 			val_targets=None,
 			val_percent=0.2,
-			verbose=True,
-			print_graph=True):
-
-		super().fit(train_features, train_targets, batch_size, epochs, callbacks, val_features, val_targets, val_percent, verbose)
+			verbose=True):
 
 		# Callbacks TRAIN begin
 		for cb in callbacks:
-			cb.on_train_begin()
+			cb.on_train_begin(model=self)
+
+		super().fit(train_features, train_targets, batch_size, epochs, callbacks, val_features, val_targets, val_percent, verbose)
 
 		for epoch in range(epochs):
 
@@ -103,28 +102,28 @@ class Sequencial(Model):
 			for cb in callbacks:
 				cb.on_epoch_begin()
 
-			# print(f"self.train_features: {self.train_features.shape}")
-			# print(f"self.train_targets: {self.train_targets.shape}")
 			# Dataset shuffle + split
 			batchs = self.batchs_split()
-			# batchs = Model.split_dataset_batches(train_features, train_targets, self.n_batch)
-
-			print(f"{len(batchs) - 1} batches with shape : {batchs[0][0].shape}")
-			print(f"1 batch with shape : {batchs[-1][0].shape}")
+			# batchs = self.batchs_split(train_features, train_targets, self.batch_split)
+			
+			for b in batchs:
+				print(f"batch shape : {b[0].shape}")
+			# print(f"{len(batchs) - 1} batches with shape : {batchs[0][0].shape}")
+			# print(f"1 batch with shape : {batchs[-1][0].shape}")
+			
+			# print(list(batchs))
 			# for step, (features, target) in enumerate(batchs):
 			for step, data in enumerate(batchs):
 
 				if verbose:
-					print(f"STEP={step}/{self.n_batch_full}")
+					print(f"STEP={step}/{self.n_batch - 1}")
 					# print(f"STEP={step}/{self.n_batch - 1}\tloss: {self.loss.get_result()}")
 
 				# Callbacks BATCH begin
 				for cb in callbacks:
 					cb.on_batch_begin()
 
-				features, targets = data
-				# print(f"features: {features.shape}")
-				# print(f"targets: {targets.shape}")
+				features, target = data
 
 				# Prediction
 				prediction = self.forward(features)
@@ -132,10 +131,10 @@ class Sequencial(Model):
 				# Metrics actualisation
 				for metric in self.train_metrics.values():
 					# print(f"train={self.val_metrics_on} -> {metric.name}")
-					metric(prediction, targets)
+					metric(prediction, target)
 
 				# Backpropagation
-				dx = self.loss.derivate(prediction, targets)
+				dx = self.loss.derivate(prediction, target)
 				gradients = [0, 0]
 				self.optimizer.gradients = []
 				for layer in self.sequence_rev:
@@ -153,11 +152,8 @@ class Sequencial(Model):
 					cb.on_batch_end()
 
 			# self.debug.append(list(self.train_metrics.values())[0].get_result())
-			
+
 			self.evaluate(self, self.val_features, self.val_targets)
-			# print(f"self.val_features: {self.val_features.shape}")
-			# print(f"self.val_targets: {self.val_targets.shape}")
-			# exit()
 
 			# Get total metrics data of this epoch
 			print(f"Metrics: {self.get_metrics_logs()}")
@@ -165,7 +161,10 @@ class Sequencial(Model):
 
 			# Callbacks EPOCH end
 			for cb in callbacks:
-				cb.on_epoch_end(verbose=verbose)
+				cb.on_epoch_end(
+					model=self,
+					metrics=self.metrics
+				)
 
 			# Save in mem & Reset metrics values
 			self.reset_metrics(save=True)
@@ -173,8 +172,7 @@ class Sequencial(Model):
 			if self.stop_trainning:
 				break
 
-		if print_graph:
-			self.print_graph()
+		self.print_graph()
 
 		# Callbacks TRAIN end
 		for cb in callbacks:
