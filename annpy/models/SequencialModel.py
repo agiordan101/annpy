@@ -279,10 +279,7 @@ class SequencialModel():
 
 			# Callbacks EPOCH end
 			for cb in callbacks:
-				cb.on_epoch_end(
-					model=self,
-					metrics=self.metrics
-				)
+				cb.on_epoch_end()
 
 			# Save in mem & Reset metrics values
 			self.reset_metrics(save=True)
@@ -296,7 +293,7 @@ class SequencialModel():
 		for cb in callbacks:
 			cb.on_train_end()
 
-		return self.loss.get_mem()[-1], self.accuracy.get_mem()[-1]
+		return self.loss.get_mem()[-1]
 
 
 	def get_metrics_logs(self):

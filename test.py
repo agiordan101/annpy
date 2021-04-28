@@ -52,7 +52,7 @@ model = get_model(features[0].shape[0])
 model.summary()
 # model.deepsummary()
 
-loss, accuracy = model.fit(
+logs = model.fit(
 	features,
 	targets,
 	epochs=300,
