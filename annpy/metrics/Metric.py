@@ -25,7 +25,6 @@ class Metric(metaclass=ABCMeta):
 		# total = self.get_mem_len_append(predictions, targets)
 		self.count += self.compute(predictions, targets)
 		self.total += 1
-		# self.total += total
 
 	def save_result(self):
 		self.mem.append(self.get_result())
