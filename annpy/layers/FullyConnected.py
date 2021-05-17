@@ -1,9 +1,17 @@
 import annpy
-import numpy as np
 from annpy.layers.Layer import Layer
 from annpy.activations.ReLU import ReLU
 
+import numpy as np
+
 class FullyConnected(Layer):
+
+	weights: np.ndarray		# -> kernel_shape
+	bias: np.ndarray		# -> bias_shape
+
+	inputs: np.ndarray		# Layer's input
+	ws: np.ndarray			# Weighted sum result
+	activation: np.ndarray	# Activation function result
 
 	def __init__(self,
 					output_shape,
@@ -11,16 +19,11 @@ class FullyConnected(Layer):
 					activation=ReLU,
 					kernel_initializer='GlorotUniform',
 					bias_initializer='Zeros',
-					name="Default layers name"):
+					name="Default FCLayer name"):
 
 		super().__init__(output_shape, input_shape, activation, kernel_initializer, bias_initializer, name)
 
 	def compile(self, input_shape):
-		# Link last layer output
-
-		# self.weights = np.random.rand(input_shape + 1, self.output_shape)
-		# self.weights = np.random.rand(input_shape, self.output_shape)
-		# self.bias = np.random.rand(self.output_shape)
 
 		self.kernel_shape = (input_shape, self.output_shape)
 		self.weights = self.kernel_initializer(
@@ -33,22 +36,15 @@ class FullyConnected(Layer):
 			input_shape=input_shape,
 			output_shape=self.output_shape
 		)
-		# print(f"weights {self.weights.shape} / type {type(self.weights[0][0])} :\n{self.weights}")
-		# print(f"bias {self.bias.shape} / type {type(self.bias[0])} :\n{self.bias}")
-		# exit(0)
+
 		return [self.weights, self.bias]
 
 	def forward(self, inputs):
-
-		# return self.activation(np.dot(self.weights, inputs))
-		# print(f"Inputs shape: {inputs.shape}")
-		# print(f"weights {self.weights.shape}:\n{self.weights}")
 
 		self.inputs = inputs
 		self.ws = np.dot(self.inputs, self.weights) + self.bias
 		self.activation = self.fa(self.ws)
 
-		# print(f"Output shape: {self.activation.shape}")
 		return self.activation
 
 	def backward(self, loss):

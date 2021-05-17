@@ -1,4 +1,3 @@
-# from annpy.models.Sequencial import Sequencial
 import sys
 import annpy
 from DataProcessing import DataProcessing
@@ -6,15 +5,16 @@ import numpy as np
 
 def get_model(input_shape):
 
-	model = annpy.models.Sequencial(input_shape=input_shape, name="First model")
+	model = annpy.models.SequencialModel(input_shape=input_shape, name="First model")
+	# model = annpy.models.Sequencial(input_shape=input_shape, name="First model")
 
 	model.add(annpy.layers.FullyConnected(
-		64,
-		activation="ReLU",
+		10,
+		activation="linear",
 	))
 	model.add(annpy.layers.FullyConnected(
-		32,
-		activation="ReLU",
+		5,
+		activation="linear",
 		# activation="tanh",
 	))
 	model.add(annpy.layers.FullyConnected(
@@ -25,6 +25,7 @@ def get_model(input_shape):
 	model.compile(
 		loss="BinaryCrossEntropy",
 		# loss="MSE",
+		# optimizer="SGD",
 		optimizer="Adam",
 		# optimizer=annpy.optimizers.Adam(
 		# 	lr=0.001
@@ -56,13 +57,17 @@ logs = model.fit(
 	features,
 	targets,
 	epochs=300,
-	batch_size=100,
+	batch_size=32,
 	callbacks=[
-		# annpy.callbacks.EarlyStopping(
-		# 	monitor='val_BinaryCrossEntropy',
-		# 	patience=10,
-		# )
+		annpy.callbacks.EarlyStopping(
+			model=model,
+			monitor='val_BinaryCrossEntropy',
+			patience=10,
+		)
 	],
 	# val_percent=None, # Bug
 	verbose=False
 )
+
+# init = annpy.initializers.UniformInitializer(min_val=-10, max_val=2.3)
+# print(init((3, 8)))

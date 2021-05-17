@@ -24,7 +24,7 @@ class EarlyStopping(Callback):
 
 		self.metric = None
 		# print(f"Metrics:\n{self.model.metrics}")
-		for m in self.model.metrics:
+		for m in self.model.metrics.values():
 
 			print(str(m))
 			if str(m) == self.monitor:

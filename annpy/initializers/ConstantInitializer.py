@@ -8,6 +8,3 @@ class ConstantInitializer(Initializer):
 
 	def __call__(self, shape, **kwargs):
 		return np.full(shape, fill_value=self.val)
-
-	def summary(self):
-		print(f"Optimizer:\tannpy.optimizers.SGD, lr={self.lr}")

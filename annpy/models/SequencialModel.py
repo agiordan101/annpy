@@ -7,6 +7,8 @@ from annpy.metrics.RangeAccuracy import RangeAccuracy
 from annpy.optimizers.Optimizer import Optimizer
 
 import numpy as np
+import pandas as pd
+import plotly.express as px
 
 class SequencialModel():
 
@@ -32,27 +34,42 @@ class SequencialModel():
 		i = int(val_percent * len(features))
 		return features[i:, :], targets[i:, :], features[:i, :], targets[:i, :]
 
+	name: str
+	input_shape: int
+
+	weightsB: list = []			# list of layers: [[w0, b0], [..., ...], [wn, bn]]
+	sequence: list = []			# list of Object: [L0, ..., Ln]
+
+	metrics: dict = {}			# All metrics used for all fitting (train & validation)
+
+	loss:		Loss = None
+	optimizer:	Optimizer = None
+	accuracy:	Metric = None
+
+	stop_trainning:	bool = False
+	val_on:			bool = True
+
 	def __init__(self,
 					input_shape=None,
 					input_layer=None,
-					name="Default models name"):
+					name="Default model name"):
 
 		self.name = name
 		self.input_shape = input_shape
-		self.weightsB = []					# self.weightsB:	[[w0, b0], [..., ...], [wn, bn]]
+		# self.weightsB = []
+
 		if input_layer:
 			self.sequence = [input_layer]
-		else:
-			self.sequence = []
+		# else:
+		# 	self.sequence = []
 
-		self.metrics = {}				# All metrics used for all fitting (train & validation)
+		# self.metrics = {}
+		# self.loss = None
+		# self.optimizer = None
+		# self.accuracy = None
 
-		self.loss = None
-		self.optimizer = None
-		self.accuracy = None
-
-		self.stop_trainning = False
-		self.val_on = True
+		# self.stop_trainning = False
+		# self.val_on = True
 
 	def __str__(self):
 		return "SequentialModel"
@@ -91,6 +108,9 @@ class SequencialModel():
 		# Parse metrics
 		for metric in metrics:
 			self.add_metric(annpy.utils.parse.parse_object(metric, Metric))
+
+		# print(self.metrics)
+		# exit()
 
 		# -- SEQUENCIAL --
 
@@ -134,7 +154,7 @@ class SequencialModel():
 		prediction = model.forward(features)
 
 		# Metrics actualisation
-		for metric in self.metrics:
+		for metric in self.metrics.values():
 			if 'val_' in str(metric):
 				metric.reset(save=False)
 				metric(prediction, target)
@@ -168,7 +188,7 @@ class SequencialModel():
 
 		# Shuffle
 		if shuffle:
-			a, b = Model.shuffle_datasets(self.train_features, self.train_targets, copy=False)
+			a, b = SequencialModel.shuffle_datasets(self.train_features, self.train_targets, copy=False)
 		
 		if self.last_batch_size:
 			last_f = a[-self.last_batch_size:]
@@ -297,16 +317,15 @@ class SequencialModel():
 
 
 	def get_metrics_logs(self):
-		return ''.join(metric.log() for metric in self.metrics)
+		return ''.join(metric.log() for metric in self.metrics.values())
 
 	def reset_metrics(self, save=False):
-		for metric in self.metrics:
-		# for metric in self.metrics.values():
+		for metric in self.metrics.values():
 			metric.reset(save)
 
 	def hard_reset_metrics(self):
-		for metric in self.metrics:
-		# for metric in self.metrics.values():
+		print(f"Metrics:\n{self.metrics}")
+		for metric in self.metrics.values():
 			metric.hard_reset()
 
 	def print_graph(self, metrics=[]):
@@ -314,7 +333,7 @@ class SequencialModel():
 		if metrics:
 			metrics = [self.metrics[metric_name] for metric_name in metrics]
 		else:
-			metrics = self.metrics
+			metrics = self.metrics.values()
 
 		data = {}
 		for metric in metrics:
@@ -333,8 +352,6 @@ class SequencialModel():
 		fig.show()
 
 	def summary(self, only_model_summary=True):
-		
-		super().summary(only_model_summary=only_model_summary)
 
 		print(f"Input shape:\t{self.input_shape}")
 		print(f"Output shape:\t{self.sequence[-1].output_shape}\n")
