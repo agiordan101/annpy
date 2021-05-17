@@ -52,38 +52,20 @@ class FullyConnected(Layer):
 		"""
 			3 partial derivatives
 		"""
-		# print(f"batch size: {self.inputs.shape[0]}")
-		# print(f"inputs {self.inputs.shape}:\n{self.inputs}")
-		# print(f"inputs.T {self.inputs.T.shape}:\n{self.inputs.T}")
-		# print(f"weights {self.weights.shape}:\n{self.weights}")
-		# print(f"weights.T {self.weights.T.shape}:\n{self.weights.T}")
-		# print(f"ws {self.ws.shape}:\n{self.ws}")
-		# print(f"activation {self.activation.shape}:\n{self.activation}")
-
-		# print(f"loss {loss.shape}:\n{loss}")
 		# d(error) / d(activation)
 		de = self.fa.derivate(self.ws)
-		# print(f"de {de.shape}:\n{de}")
 
 		# d(error) / d(weighted sum)
 		dfa = de * loss
-		# print(f"dfa      {dfa.shape}:\n{dfa}")
-		# print(f"dfa T    {dfa.T.shape}:\n{dfa.T}")
-		# print(f"dfa mean {dfa_mean.shape}:\n{dfa_mean}")
 
 		# d(error) / d(wi)
-		# dw = np.matmul(self.inputs.T, dfa)
-		dw = np.matmul(self.inputs.T, dfa) / self.inputs.shape[0]		# (n_inputs, batch_size) * (batch_size, n_neurons) = (n_inputs, n_neurons)
-		# print(f"dw {dw.shape}:\n{dw}")
+		dw = np.matmul(self.inputs.T, dfa) / self.inputs.shape[0]
 
 		# d(error) / d(bias)
 		db = np.mean(dfa, axis=0)
-		# print(f"db {db.shape}:\n{db}")
 
 		# d(error) / d(xi)
 		dx = np.matmul(dfa, self.weights.T) # (batch_size, n_neurons) * (n_neurons, n_input) = (batch_size, n_inputs)
-		# print(f"dx {dx.shape}:\n{dx}")
-		# print(f"dx.T {dx.T.shape}:\n{dx.T}")
 
 		return dx, [dw, db]
 
@@ -103,7 +85,6 @@ class FullyConnected(Layer):
 
 	def summary(self):
 
-		# print(f"FCLayer: shape={self.weights.shape}, activation={self.activation}")
 		print(f"FCLayer {self.layer_index}: shape={self.weights.shape} + {self.bias.shape}")
 		print(f"\tactivation = {self.fa},")
 		print(f"\tkernel_initializer = {self.kernel_initializer},")

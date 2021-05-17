@@ -18,7 +18,7 @@ class EarlyStopping(Callback):
 		self.min_delta = min_delta
 		self.patience = patience
 		self.mode = mode
-		print(f"Monitored metric: {monitor}")
+		# print(f"Monitored metric: {monitor}")
 
 	def on_train_begin(self, **kwargs):
 
@@ -26,7 +26,6 @@ class EarlyStopping(Callback):
 		# print(f"Metrics:\n{self.model.metrics}")
 		for m in self.model.metrics.values():
 
-			print(str(m))
 			if str(m) == self.monitor:
 				self.metric = m
 				break

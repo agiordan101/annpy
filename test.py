@@ -13,11 +13,11 @@ def get_model(input_shape, seed=None):
 	# model = annpy.models.Sequencial(input_shape=input_shape, name="First model")
 
 	model.add(annpy.layers.FullyConnected(
-		10,
+		128,
 		activation="linear",
 	))
 	model.add(annpy.layers.FullyConnected(
-		5,
+		64,
 		activation="linear",
 		# activation="tanh",
 	))
@@ -38,9 +38,32 @@ def get_model(input_shape, seed=None):
 		# 	lr=0.2,
 		# 	momentum=0.92,
 		# ),
-		metrics=["RangeAccuracy"]
+		# metrics=["RangeAccuracy"]
 	)
 	return model
+
+def get_trainned_model(input_shape, seed=None):
+
+	model = get_model(input_shape, seed)
+	logs = model.fit(
+		features,
+		targets,
+		epochs=100,
+		batch_size=32,
+		callbacks=[
+			annpy.callbacks.EarlyStopping(
+				model=model,
+				monitor='val_BinaryCrossEntropy',
+				patience=10,
+			)
+		],
+		# val_percent=None, # Bug
+		verbose=False,
+		print_graph=False
+	)
+	return model, logs
+
+
 
 if len(sys.argv) < 2:
 	raise Exception("usage: python3 test.py dataset")
@@ -53,50 +76,29 @@ data.parse_dataset(dataset_path="ressources/data.csv",
 data.normalize()
 features, targets = data.get_data(binary_targets=['B', 'M'])
 
-model = get_model(features[0].shape[0])
-# model.summary()
-# model.deepsummary()
+logs = {'loss': 1}
 
-logs0 = model.fit(
-	features,
-	targets,
-	epochs=300,
-	batch_size=32,
-	callbacks=[
-		annpy.callbacks.EarlyStopping(
-			model=model,
-			monitor='val_BinaryCrossEntropy',
-			patience=10,
-		)
-	],
-	# val_percent=None, # Bug
-	verbose=False,
-	# print_graph=False
-)
+# Seed search
+best_seed = None
+best_loss = 42
+i = 0
+s = 0
+while logs['loss'] > 0.01 and i < 100:
 
-seed = model.get_seed()
-model = get_model(features[0].shape[0], seed=seed)
-# model.deepsummary()
+	# model, logs = get_trainned_model(features[0].shape[0], seed=best_seed)
+	model, logs = get_trainned_model(features[0].shape[0])
+	
+	if logs['loss'] < best_loss:
+		best_loss = logs['loss']
+		best_seed = model.get_seed()
+	
+	i += 1
+	s += logs['loss']
+	print(f"{i} -- Best loss: {best_loss} -- Average: {s / i} \tloss: {logs['loss']}")
 
-logs1 = model.fit(
-	features,
-	targets,
-	epochs=300,
-	batch_size=32,
-	callbacks=[
-		annpy.callbacks.EarlyStopping(
-			model=model,
-			monitor='val_BinaryCrossEntropy',
-			patience=10,
-		)
-	],
-	# val_percent=None, # Bug
-	verbose=False,
-	# print_graph=False
-)
+# i = 0
+# while i < 10:
+# 	model, logs = get_trainned_model(features[0].shape[0], seed=best_seed)
+# 	print(f"best loss with this seed: {logs['loss']} --\tBest loss: {best_loss}")
+# 	i += 1
 
-print(f"Logs model 0: {logs0}")
-print(f"Logs model 1: {logs1}")
-
-# init = annpy.initializers.UniformInitializer(min_val=-10, max_val=2.3)
-# print(init((3, 8)))

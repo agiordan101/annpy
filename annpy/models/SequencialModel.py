@@ -158,14 +158,7 @@ class SequencialModel():
 		self.sequence_rev.reverse()
 
 	def get_seed(self):
-		# self.seed = np.random.seed
-		print(f"self.seed == np.get_state() ? {self.seed is np.random.get_state()}")
-		# exit(0)
 		return self.seed
-
-	# def set_seed(self, seed):
-	# 	np.random.set_state(seed)
-
 
 	def forward(self, inputs):
 		for layer in self.sequence:
@@ -189,16 +182,16 @@ class SequencialModel():
 	def dataset_fit_setup(self, train_features, train_targets, val_features, val_targets, val_percent):
 
 		if val_features and val_targets:
-			print(f"Validation dataset is past")
+			# print(f"Validation dataset is past")
 			datasets = train_features, train_targets, val_features, val_targets
 
 		# Split train dataset in two parts
 		elif val_percent:
-			print(f"Split datasets in 2 batch with val_percent={val_percent}")
+			# print(f"Split datasets in 2 batch with val_percent={val_percent}")
 			datasets = SequencialModel.train_test_split(train_features, train_targets, val_percent)
 
 		else:
-			print(f"No validation dataset: train dataset is using for validation")
+			# print(f"No validation dataset: train dataset is using for validation")
 			datasets = train_features, train_targets, train_features, train_targets
 			self.val_on = False
 
@@ -265,7 +258,8 @@ class SequencialModel():
 
 		for epoch in range(epochs):
 
-			print(f"EPOCH {epoch}")
+			if verbose:
+				print(f"EPOCH {epoch}")
 
 			# Callbacks EPOCH begin
 			for cb in callbacks:
@@ -317,13 +311,14 @@ class SequencialModel():
 
 			self.evaluate(self, self.val_features, self.val_targets)
 
-			# Get total metrics data of this epoch
-			print(f"Metrics: {self.get_metrics_logs()}")
-			print(f"\n-------------------------\n")
+			if verbose:
+				# Get total metrics data of this epoch
+				print(f"Metrics: {self.get_metrics_logs()}")
+				print(f"\n-------------------------\n")
 
 			# Callbacks EPOCH end
 			for cb in callbacks:
-				cb.on_epoch_end()
+				cb.on_epoch_end(verbose=verbose)
 
 			# Save in mem & Reset metrics values
 			self.reset_metrics(save=True)
@@ -338,7 +333,9 @@ class SequencialModel():
 		for cb in callbacks:
 			cb.on_train_end()
 
-		return self.loss.get_mem()[-1]
+		return {
+			"loss": self.loss.get_mem()[-1]
+		}
 
 
 	def get_metrics_logs(self):
@@ -349,7 +346,7 @@ class SequencialModel():
 			metric.reset(save)
 
 	def hard_reset_metrics(self):
-		print(f"Metrics:\n{self.metrics}")
+		# print(f"Metrics:\n{self.metrics}")
 		for metric in self.metrics.values():
 			metric.hard_reset()
 
