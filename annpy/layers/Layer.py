@@ -8,7 +8,7 @@ from abc import ABCMeta, abstractmethod
 class Layer(metaclass=ABCMeta):
 
 	name: str
-	layer_index: int = None
+	layer_index: int
 
 	input_shape: int
 	output_shape: int
@@ -18,7 +18,6 @@ class Layer(metaclass=ABCMeta):
 
 	kernel_initializer: Initializer
 	bias_initializer: Initializer
-
 	fa: Activation
 
 	def __init__(self, output_shape, input_shape, activation, kernel_initializer, bias_initializer, name):
@@ -27,6 +26,8 @@ class Layer(metaclass=ABCMeta):
 
 		self.input_shape = input_shape
 		self.output_shape = output_shape
+		
+		self.kernel_shape = None
 		self.bias_shape = (output_shape, )
 
 		self.kernel_initializer = parse_object(kernel_initializer, Initializer)

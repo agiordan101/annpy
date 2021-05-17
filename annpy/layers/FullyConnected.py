@@ -26,6 +26,7 @@ class FullyConnected(Layer):
 	def compile(self, input_shape):
 
 		self.kernel_shape = (input_shape, self.output_shape)
+
 		self.weights = self.kernel_initializer(
 			self.kernel_shape,
 			input_shape=input_shape,

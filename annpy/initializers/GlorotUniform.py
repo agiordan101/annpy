@@ -5,7 +5,7 @@ class GlorotUniform(UniformInitializer):
 
 	def __call__(self, shape, input_shape, output_shape, **kwargs):
 
-		print(f"kernel/bias init shape {shape}")
+		# print(f"GlorotUniform initialization shape {shape}")
 		self.max = np.sqrt(6 / (input_shape + output_shape))
 		self.min = -self.max
 

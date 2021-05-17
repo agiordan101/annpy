@@ -37,14 +37,21 @@ class SequencialModel():
 	name: str
 	input_shape: int
 
-	weightsB: list = []			# list of layers: [[w0, b0], [..., ...], [wn, bn]]
-	sequence: list = []			# list of Object: [L0, ..., Ln]
+	weightsB:		list = []	# list of layers: [[w0, b0], [..., ...], [wn, bn]]
+	sequence:		list = []	# list of Object: [L0, ..., Ln]
+	sequence_rev:	list = []	# list of Object: [L0, ..., Ln]
 
-	metrics: dict = {}			# All metrics used for all fitting (train & validation)
+	train_features:		np.ndarray
+	train_targets:		np.ndarray
+	val_features:		np.ndarray
+	val_targets:		np.ndarray
+	last_batch_size:	int		# last full batch size index
 
 	loss:		Loss = None
 	optimizer:	Optimizer = None
 	accuracy:	Metric = None
+
+	metrics:		dict = {}	# All metrics used for all fitting (train & validation)
 
 	stop_trainning:	bool = False
 	val_on:			bool = True
@@ -52,24 +59,31 @@ class SequencialModel():
 	def __init__(self,
 					input_shape=None,
 					input_layer=None,
-					name="Default model name"):
+					name="Default model name",
+					seed=None):
+
+		if seed:
+			self.seed = seed
+			np.random.set_state(seed)
+		else:
+			self.seed = np.random.get_state() ###########################################
 
 		self.name = name
 		self.input_shape = input_shape
-		# self.weightsB = []
+		self.weightsB = []
 
 		if input_layer:
 			self.sequence = [input_layer]
-		# else:
-		# 	self.sequence = []
+		else:
+			self.sequence = []
 
-		# self.metrics = {}
-		# self.loss = None
-		# self.optimizer = None
-		# self.accuracy = None
+		self.metrics = {}
+		self.loss = None
+		self.optimizer = None
+		self.accuracy = None
 
-		# self.stop_trainning = False
-		# self.val_on = True
+		self.stop_trainning = False
+		self.val_on = True
 
 	def __str__(self):
 		return "SequentialModel"
@@ -143,6 +157,15 @@ class SequencialModel():
 		self.sequence_rev = self.sequence.copy()
 		self.sequence_rev.reverse()
 
+	def get_seed(self):
+		# self.seed = np.random.seed
+		print(f"self.seed == np.get_state() ? {self.seed is np.random.get_state()}")
+		# exit(0)
+		return self.seed
+
+	# def set_seed(self, seed):
+	# 	np.random.set_state(seed)
+
 
 	def forward(self, inputs):
 		for layer in self.sequence:
@@ -189,7 +212,7 @@ class SequencialModel():
 		# Shuffle
 		if shuffle:
 			a, b = SequencialModel.shuffle_datasets(self.train_features, self.train_targets, copy=False)
-		
+
 		if self.last_batch_size:
 			last_f = a[-self.last_batch_size:]
 			last_t = b[-self.last_batch_size:]
@@ -221,7 +244,8 @@ class SequencialModel():
 			val_features=None,
 			val_targets=None,
 			val_percent=0.2,
-			verbose=True):
+			verbose=True,
+			print_graph=True):
 
 		# Parse datasets
 		self.dataset_fit_setup(train_features, train_targets, val_features, val_targets, val_percent)
@@ -307,7 +331,8 @@ class SequencialModel():
 			if self.stop_trainning:
 				break
 
-		self.print_graph()
+		if print_graph:
+			self.print_graph()
 
 		# Callbacks TRAIN end
 		for cb in callbacks:

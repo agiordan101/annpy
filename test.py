@@ -3,9 +3,13 @@ import annpy
 from DataProcessing import DataProcessing
 import numpy as np
 
-def get_model(input_shape):
+def get_model(input_shape, seed=None):
 
-	model = annpy.models.SequencialModel(input_shape=input_shape, name="First model")
+	model = annpy.models.SequencialModel(
+		input_shape=input_shape,
+		name="First model",
+		seed=seed
+	)
 	# model = annpy.models.Sequencial(input_shape=input_shape, name="First model")
 
 	model.add(annpy.layers.FullyConnected(
@@ -50,10 +54,10 @@ data.normalize()
 features, targets = data.get_data(binary_targets=['B', 'M'])
 
 model = get_model(features[0].shape[0])
-model.summary()
+# model.summary()
 # model.deepsummary()
 
-logs = model.fit(
+logs0 = model.fit(
 	features,
 	targets,
 	epochs=300,
@@ -66,8 +70,33 @@ logs = model.fit(
 		)
 	],
 	# val_percent=None, # Bug
-	verbose=False
+	verbose=False,
+	# print_graph=False
 )
+
+seed = model.get_seed()
+model = get_model(features[0].shape[0], seed=seed)
+# model.deepsummary()
+
+logs1 = model.fit(
+	features,
+	targets,
+	epochs=300,
+	batch_size=32,
+	callbacks=[
+		annpy.callbacks.EarlyStopping(
+			model=model,
+			monitor='val_BinaryCrossEntropy',
+			patience=10,
+		)
+	],
+	# val_percent=None, # Bug
+	verbose=False,
+	# print_graph=False
+)
+
+print(f"Logs model 0: {logs0}")
+print(f"Logs model 1: {logs1}")
 
 # init = annpy.initializers.UniformInitializer(min_val=-10, max_val=2.3)
 # print(init((3, 8)))
