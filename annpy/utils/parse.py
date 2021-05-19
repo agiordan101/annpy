@@ -53,4 +53,4 @@ def parse_object(obj, cls, str_allowed=True):
 	if issubclass(type(obj), cls):
 		return obj
 	else:
-		raise Exception(f"Object {obj} (type: {type(obj)}) is not a child of abstact class {cls}")
+		raise Exception(f"[annpy error]:Object {obj} (type: {type(obj)}) is not a child of abstact class {cls}")

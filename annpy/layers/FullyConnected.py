@@ -1,6 +1,5 @@
 import annpy
 from annpy.layers.Layer import Layer
-from annpy.activations.ReLU import ReLU
 
 import numpy as np
 
@@ -16,7 +15,7 @@ class FullyConnected(Layer):
 	def __init__(self,
 					output_shape,
 					input_shape=None,
-					activation=ReLU,
+					activation='Linear',
 					kernel_initializer='GlorotUniform',
 					bias_initializer='Zeros',
 					name="Default FCLayer name"):
@@ -82,6 +81,16 @@ class FullyConnected(Layer):
 		# print(f"dw {dw.shape}:\n{dw}")
 		# print(f"dx {dx.shape}:\n{dx}")
 		# exit(0)
+
+	def _save(self):
+
+		return {
+			"type": "FullyConnected",
+			"name": self.name,
+			"activation": str(self.fa),
+			"kernel": [list(w) for w in list(self.weights)],
+			"bias": list(self.bias)
+		}
 
 	def summary(self):
 

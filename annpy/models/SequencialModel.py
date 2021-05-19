@@ -6,6 +6,7 @@ from annpy.metrics.Accuracy import Accuracy
 from annpy.metrics.RangeAccuracy import RangeAccuracy
 from annpy.optimizers.Optimizer import Optimizer
 
+import json
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -56,10 +57,12 @@ class SequencialModel():
 	stop_trainning:	bool = False
 	val_on:			bool = True
 
+	save_weights_method: str = "Only weights"
+
 	def __init__(self,
 					input_shape=None,
 					input_layer=None,
-					name="Default model name",
+					name="default_model_name",
 					seed=None):
 
 		if seed:
@@ -96,7 +99,7 @@ class SequencialModel():
 			self.sequence.append(layer)
 
 		else:
-			raise Exception(f"Object {layer} is not a child of abstact class {Layer}")
+			raise Exception(f"[annpy error]:Object {layer} is not a child of abstact class {Layer}")
 
 	def add_metric(self, metric):
 
@@ -112,7 +115,7 @@ class SequencialModel():
 		# -- MODEL --
 
 		if not isinstance(metrics, list):
-			raise Exception("Error: Model: Metrics parameter in compile() is not a list")
+			raise TypeError("[annpy error] Model: Metrics parameter in compile() is not a list")
 
 		# Parse optimizer, loss
 		self.optimizer = annpy.utils.parse.parse_object(optimizer, Optimizer)
@@ -135,7 +138,7 @@ class SequencialModel():
 			self.input_shape = self.sequence[0].input_shape
 			print(f"AVOUE TA JAMAIS VU CE PRINT ALORS EFFACE MOI")
 		else:
-			raise Exception(f"[ERROR] {self} input_shape of layer 0 missing")
+			raise Exception(f"[annpy error] {self} input_shape of layer 0 missing")
 
 		input_shape = self.input_shape
 		for layer in self.sequence:
@@ -202,6 +205,8 @@ class SequencialModel():
 
 	def batchs_split(self, shuffle=True):
 
+		a, b = self.train_features, self.train_targets
+
 		# Shuffle
 		if shuffle:
 			a, b = SequencialModel.shuffle_datasets(self.train_features, self.train_targets, copy=False)
@@ -237,6 +242,7 @@ class SequencialModel():
 			val_features=None,
 			val_targets=None,
 			val_percent=0.2,
+			shuffle=True,
 			verbose=True,
 			print_graph=True):
 
@@ -266,7 +272,7 @@ class SequencialModel():
 				cb.on_epoch_begin()
 
 			# Dataset shuffle + split
-			batchs = self.batchs_split()
+			batchs = self.batchs_split(shuffle=shuffle)
 
 			# for step, (features, target) in enumerate(batchs):
 			for step, data in enumerate(batchs):
@@ -372,6 +378,27 @@ class SequencialModel():
 
 		fig = px.line(data_df)
 		fig.show()
+
+	def _save(self):
+		return {
+			"type": "SequentialModel",
+			"name": self.name,
+			"layers": [layer._save() for layer in self.sequence]
+		}
+
+	def save_weights(self, folder_path):
+
+		struct = {
+			"file": self.save_weights_method,
+			"model": self._save()
+		}
+
+		print(struct)
+		with open(f"{folder_path}/{self.name}_weights.json", 'w') as f:
+			# f.write(struct)
+			json.dump(struct, f, indent=4)
+
+		return struct
 
 	def summary(self, only_model_summary=True):
 

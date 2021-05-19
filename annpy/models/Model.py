@@ -81,7 +81,7 @@
 # 	def compile(self, loss, optimizer, metrics):
 
 # 		if not isinstance(metrics, list):
-# 			raise Exception("Error: Model: Metrics parameter in compile() is not a list")
+# 			raise Exception("[annpy error]:Error: Model: Metrics parameter in compile() is not a list")
 
 # 		self.optimizer = annpy.utils.parse.parse_object(optimizer, Optimizer)
 

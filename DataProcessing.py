@@ -137,7 +137,6 @@ class DataProcessing():
 
 		with open(file_path, 'r') as f:
 			data = f.read()
-			f.close()
 
 			if normalization:
 				self.normalization_data = [[float(x) for x in line.split('/')] for line in data.split('\n')[1:-1]]

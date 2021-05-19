@@ -28,7 +28,7 @@
 # 			layer.set_layer_index(len(self.sequence))
 # 			self.sequence.append(layer)
 # 		else:
-# 			raise Exception(f"Object {layer} is not a child of abstact class {Layer}")
+# 			raise Exception(f"[annpy error]:Object {layer} is not a child of abstact class {Layer}")
 
 # 	def compile(self,
 # 				loss="MSE",
@@ -44,7 +44,7 @@
 # 		elif self.sequence[0].input_shape:
 # 			self.input_shape = self.sequence[0].input_shape
 # 		else:
-# 			raise Exception(f"[ERROR] {self} input_shape of layer 0 missing")
+# 			raise Exception(f"[annpy error]:[ERROR] {self} input_shape of layer 0 missing")
 # 		input_shape = self.input_shape
 
 # 		# self.weightsB:	[[w0, b0], [..., ...], [wn, bn]]

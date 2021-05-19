@@ -34,11 +34,11 @@ class Graph():
 # 	def add_curve(self, curve, graph='Default name'):
 
 # 		if graph not in self.graphs:
-# 			raise Exception(f"Unable to find {graph} graph")
+# 			raise Exception(f"[annpy error]:Unable to find {graph} graph")
 
 # 		if self.graphs[graph]['x']:
 # 			if range(len(curve)) != self.graphs[graph]['x']:
-# 				raise Exception(f"x axis of graph {graph} are not the same: {range(len(curve))} != {self.graphs[graph]['x']}")
+# 				raise Exception(f"[annpy error]:x axis of graph {graph} are not the same: {range(len(curve))} != {self.graphs[graph]['x']}")
 # 		else:
 # 			# self.graphs[graph]['x'] = range(len(curve))
 # 			self.graphs[graph]['x'] = np.linspace(0, range(len(curve)), 1)
