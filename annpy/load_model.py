@@ -8,7 +8,3 @@ def load_model(file_path):
 			return
 		
 		model = data['file']
-
-	else:
-		raise Exception(f"[annpy error] Unable to open {file_path}")
-
