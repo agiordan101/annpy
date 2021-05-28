@@ -41,12 +41,12 @@ def parsing(dataset_path, seeds_path=None):
 
 def get_model(input_shape, seed=None):
 
-	model = annpy.models.SequencialModel(
+	model = annpy.models.SequentialModel(
 		input_shape=input_shape,
 		name="First model",
 		seed=seed
 	)
-	# model = annpy.models.Sequencial(input_shape=input_shape, name="First model")
+	# model = annpy.models.sequential(input_shape=input_shape, name="First model")
 
 	model.add(annpy.layers.FullyConnected(
 		20,

@@ -1,2 +1,2 @@
-# from annpy.models.Sequencial import Sequencial
-from annpy.models.SequencialModel import SequencialModel
+# from annpy.models.sequential import sequential
+from annpy.models.SequentialModel import SequentialModel

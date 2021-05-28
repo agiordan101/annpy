@@ -18,15 +18,15 @@ class Optimizer(metaclass=ABCMeta):
 		if not self.gradient_transform:
 			raise NotImplementedError
 
-	def apply_gradients(self, weightsB):
-		# weightsB:		[[w0, b0], [..., ...], [wn, bn]]
+	def apply_gradients(self, weights):
+		# weights:		[[w0, b0], [..., ...], [wn, bn]]
 		# gradients:	[[dw, db], [..., ...], [wn, bn]]
 
-		l = len(weightsB) - 1
-		for weightsB_l, gradients_l in zip(weightsB[::-1], self.gradients):
+		l = len(weights) - 1
+		for weights_l, gradients_l in zip(weights[::-1], self.gradients):
 
 			for i, gradient in enumerate(gradients_l):
-				weightsB_l[i] += self.gradient_transform(gradient=gradient, l=l, wi=i)
+				weights_l[i] += self.gradient_transform(gradient=gradient, l=l, wi=i)
 			l -= 1
 
 	@abstractmethod

@@ -1,3 +1,4 @@
+from annpy import activations, layers
 import annpy
 from annpy.losses.Loss import Loss
 from annpy.layers.Layer import Layer
@@ -11,7 +12,7 @@ import numpy as np
 import pandas as pd
 import plotly.express as px
 
-class SequencialModel():
+class SequentialModel():
 
 	@classmethod
 	def shuffle_datasets(cls, a, b, copy=False):
@@ -38,7 +39,7 @@ class SequencialModel():
 	name: str
 	input_shape: int
 
-	weightsB:		list = []	# list of layers: [[w0, b0], [..., ...], [wn, bn]]
+	weights:		list = []	# list of layers: [[w0, b0], [..., ...], [wn, bn]]
 	sequence:		list = []	# list of Object: [L0, ..., Ln]
 	sequence_rev:	list = []	# list of Object: [L0, ..., Ln]
 
@@ -57,7 +58,7 @@ class SequencialModel():
 	stop_trainning:	bool = False
 	val_on:			bool = True
 
-	save_weights_method: str = "Only weights"
+	weights_file_name: str = None
 
 	def __init__(self,
 					input_shape=None,
@@ -73,7 +74,7 @@ class SequencialModel():
 
 		self.name = name
 		self.input_shape = input_shape
-		self.weightsB = []
+		self.weights = []
 
 		if input_layer:
 			self.sequence = [input_layer]
@@ -129,26 +130,27 @@ class SequencialModel():
 		# print(self.metrics)
 		# exit()
 
-		# -- SEQUENCIAL --
+		# -- sequential --
 
 		# Handling input_shape
 		if self.input_shape:
 			pass
-		elif self.sequence[0].input_shape:
+
+		elif len(self.sequence) and self.sequence[0].input_shape:
 			self.input_shape = self.sequence[0].input_shape
-			print(f"AVOUE TA JAMAIS VU CE PRINT ALORS EFFACE MOI")
+
 		else:
-			raise Exception(f"[annpy error] {self} input_shape of layer 0 missing")
+			raise Exception(f"[annpy error] SequentialModel.compile(): input_shape of layer 0 missing")
 
 		input_shape = self.input_shape
 		for layer in self.sequence:
 
 			# Compile all layers
-			weightsB = layer.compile(input_shape)
-			self.weightsB.append(weightsB)
+			weights = layer.compile(input_shape)
+			self.weights.append(weights)
 
 			# Save weights reference in optimizer
-			self.optimizer.add(weightsB)
+			self.optimizer.add(weights)
 
 			# Save next input shape
 			input_shape = layer.output_shape
@@ -191,7 +193,7 @@ class SequencialModel():
 		# Split train dataset in two parts
 		elif val_percent:
 			# print(f"Split datasets in 2 batch with val_percent={val_percent}")
-			datasets = SequencialModel.train_test_split(train_features, train_targets, val_percent)
+			datasets = SequentialModel.train_test_split(train_features, train_targets, val_percent)
 
 		else:
 			# print(f"No validation dataset: train dataset is using for validation")
@@ -209,7 +211,7 @@ class SequencialModel():
 
 		# Shuffle
 		if shuffle:
-			a, b = SequencialModel.shuffle_datasets(self.train_features, self.train_targets, copy=False)
+			a, b = SequentialModel.shuffle_datasets(self.train_features, self.train_targets, copy=False)
 
 		if self.last_batch_size:
 			last_f = a[-self.last_batch_size:]
@@ -308,7 +310,7 @@ class SequencialModel():
 					self.optimizer.gradients.append(gradients)
 
 				# Optimizer
-				self.optimizer.apply_gradients(self.weightsB)
+				self.optimizer.apply_gradients(self.weights)
 
 				# Callbacks BATCH end
 				for cb in callbacks:
@@ -377,12 +379,9 @@ class SequencialModel():
 		fig = px.line(data_df)
 		fig.show()
 
-	def _save(self):
-		return {
-			"type": "SequentialModel",
-			"name": self.name,
-			"layers": [layer._save() for layer in self.sequence]
-		}
+	"""
+		Summaries
+	"""
 
 	def summary(self, only_model_summary=True):
 
@@ -399,37 +398,75 @@ class SequencialModel():
 		if model_summary:
 			self.summary(only_model_summary=False)
 
-		for i, layer in enumerate(self.weightsB):
+		for i, layer in enumerate(self.weights):
 			print(f"\nLayer {i}:\n")
 			print(f"Weights {layer[0].shape}:\n{layer[0]}\n")
 			print(f"Bias {layer[1].shape}:\n{layer[1]}\n")
 
 		print(f"-------------------\n")
 
-	def save_weights(self, folder_path):
+	"""
+		Model save
+	"""
 
-		struct = {
-			"file_type": self.save_weights_method,
-			"model": self._save()
+	def _save(self):
+		return {
+			'name': self.name,
+			'type': "SequentialModel",
+			'input_shape': self.input_shape,
+			'layers': [layer._save() for layer in self.sequence]
 		}
 
-		print(struct)
+	def save_weights(self, folder_path):
+		"""
+			Specific configuration to only save weights
+		"""
+
+		self.weights_file_name = self.weights_file_name or f"{folder_path}/{self.name}_weights.json"
+		struct = {
+			'file_type': "Only weights",
+			'model': self._save()
+		}
+
 		with open(f"{folder_path}/{self.name}_weights.json", 'w') as f:
 			# f.write(struct)
 			json.dump(struct, f, indent=4)
 
-		return struct
+		return self.weights_file_name, struct
 
-	def load_model(file_path):
+	@classmethod
+	def load_model(obj, file_path):
 
 		model = None
 		with open(file_path, 'r') as f:
 			data = json.loads(f.read())
-			
-			model = data.get('file_type')
-			if model != "Only weights":
+
+			if data.get('file_type') != "Only weights":
 				raise Exception(f"[annpy error] load_model: Wrong <file_type> for file {file_path}")
 
-			print(f"MODEL FILE DATA:\n{data}")
+			data = data.get('model')
 
-		# return model
+			# print(f"Object __name__: >{type(model.get('type'))}< =?= >{type(obj.__name__)}<")
+			# print(f"Object __name__: >{model.get('type')}< =?= >{obj.__name__}<")
+			# print(f"MODEL FILE DATA:\n{model}")
+
+			if data.get('type') != obj.__name__:
+				raise Exception(f"[annpy error] SequentialModel.load_model(): Wrong model type in {file_path} for this classmethod")
+
+			model = SequentialModel(
+				input_shape=data.get('input_shape'),
+				name=data.get('name')
+			)
+
+			for layer in data.get('layers', []):
+				model.add(annpy.utils.parse.parse_object(
+					layer.get('type'),
+					Layer,
+					output_shape=layer.get('units'),
+					activation=layer.get('activation'),
+					kernel=layer.get('kernel'),
+					bias=layer.get('bias'),
+					name=layer.get('name')
+				))
+
+		return model

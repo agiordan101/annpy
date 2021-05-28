@@ -4,7 +4,7 @@
 
 # import numpy as np
 
-# class Sequencial(Model):
+# class sequential(Model):
 
 # 	def __init__(self,
 # 					input_shape=None,
@@ -47,18 +47,18 @@
 # 			raise Exception(f"[annpy error]:[ERROR] {self} input_shape of layer 0 missing")
 # 		input_shape = self.input_shape
 
-# 		# self.weightsB:	[[w0, b0], [..., ...], [wn, bn]]
-# 		self.weightsB = []
+# 		# self.weights:	[[w0, b0], [..., ...], [wn, bn]]
+# 		self.weights = []
 # 		for layer in self.sequence:
 
-# 			weightsB = layer.compile(input_shape)
-# 			self.weightsB.append(weightsB)
+# 			weights = layer.compile(input_shape)
+# 			self.weights.append(weights)
 
 # 			# Save next input shape
 # 			input_shape = layer.output_shape
 
 # 			# Add matrix for optimizer math
-# 			self.optimizer.add(weightsB)
+# 			self.optimizer.add(weights)
 
 # 		# Optimizers maths
 # 		self.optimizer.compile()
@@ -144,7 +144,7 @@
 # 					self.optimizer.gradients.append(gradients)
 
 # 				# Optimizer
-# 				self.optimizer.apply_gradients(self.weightsB)
+# 				self.optimizer.apply_gradients(self.weights)
 # 				# exit(0)
 
 # 				# Callbacks BATCH end
@@ -198,7 +198,7 @@
 # 		if model_summary:
 # 			self.summary(only_model_summary=False)
 
-# 		for i, layer in enumerate(self.weightsB):
+# 		for i, layer in enumerate(self.weights):
 # 			print(f"\nLayer {i}:\n")
 # 			print(f"Weights {layer[0].shape}:\n{layer[0]}\n")
 # 			print(f"Bias {layer[1].shape}:\n{layer[1]}\n")

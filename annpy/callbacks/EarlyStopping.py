@@ -5,10 +5,10 @@ class EarlyStopping(Callback):
 
 	def __init__(self,
 					model,
-					monitor='val_loss',
-					min_delta=0,
+					monitor,
+					mode='auto',
 					patience=0,
-					mode='auto'):
+					min_delta=0):
 		super().__init__(model)
 
 		if mode not in ['auto', 'min', 'max']:

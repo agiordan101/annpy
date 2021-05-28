@@ -16,7 +16,7 @@ def parsing():
 
 def get_my_model(input_shape):
 
-	model = annpy.models.SequencialModel(input_shape=input_shape)
+	model = annpy.models.SequentialModel(input_shape=input_shape)
 	model.add(annpy.layers.FullyConnected(10))
 	model.add(annpy.layers.FullyConnected(5))
 	model.add(annpy.layers.FullyConnected(2, activation="Softmax"))
@@ -44,18 +44,13 @@ np.random.seed(42)
 my_model = get_my_model(input_shape)
 tf_model = get_tf_model(input_shape)
 
-tf_model.layers[1].set_weights(my_model.weightsB[0])
-tf_model.layers[2].set_weights(my_model.weightsB[1])
-tf_model.layers[3].set_weights(my_model.weightsB[2])
-# tf_model.set_weights(my_model.weightsB)
+tf_model.layers[1].set_weights(my_model.weights[0])
+tf_model.layers[2].set_weights(my_model.weights[1])
+tf_model.layers[3].set_weights(my_model.weights[2])
+# tf_model.set_weights(my_model.weights)
 
 my_model.deepsummary()
-print([l.weights for l in tf_model.layers])
-# print(tf_model.layers[0].weights)
-# print(tf_model.layers[1].weights)
-# print(tf_model.layers[2].weights)
-# print(tf_model.layers[3].weights)
-# exit(0)
+print([l.kernel for l in tf_model.layers])
 
 logs = my_model.fit(
 	features,
@@ -81,4 +76,4 @@ logs = tf_model.fit(
 # print(tf_model.forward(features[0]))
 
 my_model.deepsummary()
-print([l.weights for l in tf_model.layers])
+print([l.kernel for l in tf_model.layers])

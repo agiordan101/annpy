@@ -11,7 +11,7 @@ annpy/Layers/Layer.py
 annpy/Layers/__init__.py
 annpy/Losses/__init__.py
 annpy/Losses/losses.py
-annpy/Models/Sequencial.py
+annpy/Models/sequential.py
 annpy/Models/__init__.py
 annpy/Optimizers/SGD.py
 annpy/Optimizers/__init__.py
@@ -20,7 +20,7 @@ annpy/layers/Layer.py
 annpy/layers/__init__.py
 annpy/losses/__init__.py
 annpy/losses/losses.py
-annpy/models/Sequencial.py
+annpy/models/sequential.py
 annpy/models/__init__.py
 annpy/optimizers/SGD.py
 annpy/optimizers/__init__.py

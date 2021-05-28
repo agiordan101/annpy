@@ -1,12 +1,12 @@
-import annpy
 from annpy.layers.Layer import Layer
 
 import numpy as np
 
 class FullyConnected(Layer):
 
-	weights: np.ndarray		# -> kernel_shape
-	bias: np.ndarray		# -> bias_shape
+	weights: np.ndarray = None
+	kernel: np.ndarray = None
+	bias: np.ndarray = None
 
 	inputs: np.ndarray		# Layer's input
 	ws: np.ndarray			# Weighted sum result
@@ -16,33 +16,54 @@ class FullyConnected(Layer):
 					output_shape,
 					input_shape=None,
 					activation='Linear',
+					kernel=None,
 					kernel_initializer='GlorotUniform',
+					bias=None,
 					bias_initializer='Zeros',
 					name="Default FCLayer name"):
 
-		super().__init__(output_shape, input_shape, activation, kernel_initializer, bias_initializer, name)
+		# print(f"fc init: {(output_shape, input_shape, activation, kernel_initializer, bias_initializer, name)}")
+		super().__init__(
+			output_shape,
+			input_shape,
+			activation,
+			None if kernel else kernel_initializer,
+			None if bias else bias_initializer,
+			name
+		)
+		if kernel:
+			# print(f"kernel: {kernel}")
+			self.kernel = np.array(kernel)
+		if bias:
+			self.bias = np.array(bias)
 
 	def compile(self, input_shape):
 
 		self.kernel_shape = (input_shape, self.output_shape)
 
-		self.weights = self.kernel_initializer(
-			self.kernel_shape,
-			input_shape=input_shape,
-			output_shape=self.output_shape
-		)
-		self.bias = self.bias_initializer(
-			self.bias_shape,
-			input_shape=input_shape,
-			output_shape=self.output_shape
-		)
+		if self.kernel is None:
+			self.kernel = self.kernel_initializer(
+				self.kernel_shape,
+				input_shape=input_shape,
+				output_shape=self.output_shape
+			)
 
-		return [self.weights, self.bias]
+		if self.bias is None:
+			self.bias = self.bias_initializer(
+				self.bias_shape,
+				input_shape=input_shape,
+				output_shape=self.output_shape
+			)
+
+		# print(f"self.weights: {self.kernel, self.bias}")
+		self.weights = [self.kernel, self.bias]
+		return self.weights
+		# return [self.kernel, self.bias]
 
 	def forward(self, inputs):
 
 		self.inputs = inputs
-		self.ws = np.dot(self.inputs, self.weights) + self.bias
+		self.ws = np.dot(self.inputs, self.kernel) + self.bias
 		self.activation = self.fa(self.ws)
 
 		return self.activation
@@ -64,12 +85,12 @@ class FullyConnected(Layer):
 		db = np.mean(dfa, axis=0)
 
 		# d(error) / d(xi)
-		dx = np.matmul(dfa, self.weights.T) # (batch_size, n_neurons) * (n_neurons, n_input) = (batch_size, n_inputs)
+		dx = np.matmul(dfa, self.kernel.T) # (batch_size, n_neurons) * (n_neurons, n_input) = (batch_size, n_inputs)
 
 		return dx, [dw, db]
 
 		# print(f"inputs T {self.inputs.T.shape}:\n{self.inputs.T}")
-		# print(f"weights {self.weights.shape}:\n{self.weights}")
+		# print(f"weights {self.kernel.shape}:\n{self.kernel}")
 		# print(f"ws {self.ws.shape}:\n{self.ws}")
 		# print(f"activation {self.activation.shape}:\n{self.activation}")
 		# print(f"loss {loss.shape}:\n{loss}")
@@ -82,20 +103,31 @@ class FullyConnected(Layer):
 		# print(f"dx {dx.shape}:\n{dx}")
 		# exit(0)
 
-	def _save(self):
-
-		return {
-			"type": "FullyConnected",
-			"name": self.name,
-			"activation": str(self.fa),
-			"kernel": [list(w) for w in list(self.weights)],
-			"bias": list(self.bias)
-		}
+	"""
+		Summary
+	"""
 
 	def summary(self):
 
-		print(f"FCLayer {self.layer_index}: shape={self.weights.shape} + {self.bias.shape}")
+		print(f"FCLayer {self.layer_index} - {self.name}: shape={self.kernel.shape} + {self.bias.shape}")
 		print(f"\tactivation = {self.fa},")
 		print(f"\tkernel_initializer = {self.kernel_initializer},")
 		print(f"\tbias_initializer = {self.bias_initializer}")
 		print()
+
+	"""
+		Model save
+	"""
+
+	def _save(self):
+
+		return {
+			'type': "FullyConnected",
+			'name': self.name,
+			'units': self.bias_shape,
+			'activation': str(self.fa),
+			'kernel': [list(w) for w in list(self.kernel)],
+			'bias': list(self.bias)
+		}
+
+

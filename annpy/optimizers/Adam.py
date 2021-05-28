@@ -19,9 +19,9 @@ class Adam(Optimizer):
         self.epsilon = epsilon
         self.gradient_transform = self.adam
 
-    def add(self, weightsB):
-        self.m1.append([np.zeros(w.shape) for w in weightsB])
-        self.m2.append([np.zeros(w.shape) for w in weightsB])
+    def add(self, weights):
+        self.m1.append([np.zeros(w.shape) for w in weights])
+        self.m2.append([np.zeros(w.shape) for w in weights])
 
     def compile(self):
         # self.n_layers = len(self.m1)

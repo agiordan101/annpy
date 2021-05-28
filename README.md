@@ -1,9 +1,5 @@
 # MLP_libray
 
-To do:
+Basic Artificial Neural Network library for python machine learning.
 
-	- regularizer
-	- EarlyStopping save weights
-	- Dropout layer
-	- utils.parse -> utils.parsing
-	- utils.processing with DataProcessing() + shuffle_datasets() + train_val_split()
+Author: agiordan

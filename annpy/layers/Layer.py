@@ -1,5 +1,5 @@
 import annpy
-from annpy.utils.parse import parse_object
+
 from annpy.activations.Activation import Activation
 from annpy.initializers.Initializer import Initializer
 
@@ -16,8 +16,8 @@ class Layer(metaclass=ABCMeta):
 	kernel_shape: tuple
 	bias_shape: tuple
 
-	kernel_initializer: Initializer
-	bias_initializer: Initializer
+	kernel_initializer: Initializer = None
+	bias_initializer: Initializer = None
 	fa: Activation
 
 	def __init__(self, output_shape, input_shape, activation, kernel_initializer, bias_initializer, name):
@@ -28,11 +28,15 @@ class Layer(metaclass=ABCMeta):
 		self.output_shape = output_shape
 		
 		self.kernel_shape = None
-		self.bias_shape = (output_shape, )
+		self.bias_shape = output_shape
 
-		self.kernel_initializer = parse_object(kernel_initializer, Initializer)
-		self.bias_initializer = parse_object(bias_initializer, Initializer)
-		self.fa = parse_object(activation, Activation)
+		if kernel_initializer:
+			self.kernel_initializer = annpy.utils.parse.parse_object(kernel_initializer, Initializer)
+		if bias_initializer:
+			self.bias_initializer = annpy.utils.parse.parse_object(bias_initializer, Initializer)
+
+		# print(f"layer init: {(output_shape, input_shape, activation, kernel_initializer, bias_initializer, name)}")
+		self.fa = annpy.utils.parse.parse_object(activation, Activation)
 
 	def set_layer_index(self, i):
 		self.layer_index = i
