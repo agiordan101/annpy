@@ -242,7 +242,6 @@ class SequencialModel():
 			val_features=None,
 			val_targets=None,
 			val_percent=0.2,
-			shuffle=True,
 			verbose=True,
 			print_graph=True):
 
@@ -272,7 +271,7 @@ class SequencialModel():
 				cb.on_epoch_begin()
 
 			# Dataset shuffle + split
-			batchs = self.batchs_split(shuffle=shuffle)
+			batchs = self.batchs_split()
 
 			# for step, (features, target) in enumerate(batchs):
 			for step, data in enumerate(batchs):
@@ -297,7 +296,7 @@ class SequencialModel():
 
 				# Backpropagation
 				dx = self.loss.derivate(prediction, target)
-				
+
 				# For sequential model: dw, db
 				gradients = [0, 0]
 				
@@ -339,9 +338,8 @@ class SequencialModel():
 		for cb in callbacks:
 			cb.on_train_end()
 
-		return {
-			"loss": self.loss.get_mem()[-1]
-		}
+		return {key:metric.get_result() for key, metric in self.metrics.items()}
+
 
 
 	def get_metrics_logs(self):
@@ -386,20 +384,6 @@ class SequencialModel():
 			"layers": [layer._save() for layer in self.sequence]
 		}
 
-	def save_weights(self, folder_path):
-
-		struct = {
-			"file": self.save_weights_method,
-			"model": self._save()
-		}
-
-		print(struct)
-		with open(f"{folder_path}/{self.name}_weights.json", 'w') as f:
-			# f.write(struct)
-			json.dump(struct, f, indent=4)
-
-		return struct
-
 	def summary(self, only_model_summary=True):
 
 		print(f"Input shape:\t{self.input_shape}")
@@ -421,3 +405,31 @@ class SequencialModel():
 			print(f"Bias {layer[1].shape}:\n{layer[1]}\n")
 
 		print(f"-------------------\n")
+
+	def save_weights(self, folder_path):
+
+		struct = {
+			"file_type": self.save_weights_method,
+			"model": self._save()
+		}
+
+		print(struct)
+		with open(f"{folder_path}/{self.name}_weights.json", 'w') as f:
+			# f.write(struct)
+			json.dump(struct, f, indent=4)
+
+		return struct
+
+	def load_model(file_path):
+
+		model = None
+		with open(file_path, 'r') as f:
+			data = json.loads(f.read())
+			
+			model = data.get('file_type')
+			if model != "Only weights":
+				raise Exception(f"[annpy error] load_model: Wrong <file_type> for file {file_path}")
+
+			print(f"MODEL FILE DATA:\n{data}")
+
+		# return model

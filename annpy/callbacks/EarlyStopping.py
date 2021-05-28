@@ -12,7 +12,7 @@ class EarlyStopping(Callback):
 		super().__init__(model)
 
 		if mode not in ['auto', 'min', 'max']:
-			raise Exception(f"[annpy error]:Can't resolve argument mode={mode} in EarlyStopping constructor")
+			raise Exception(f"[annpy error] EarlyStopping constructor: Can't resolve argument mode={mode} in EarlyStopping constructor")
 
 		self.monitor = monitor
 		self.min_delta = min_delta
@@ -32,7 +32,7 @@ class EarlyStopping(Callback):
 
 		if not self.metric:
 			print(f"Metrics:\n{self.model.metrics}")
-			raise Exception(f"[annpy error]:EarlyStopping constructor: Unable to find monitored metric {self.monitor} in this model")
+			raise Exception(f"[annpy error] EarlyStopping on_train_begin: Unable to find monitored metric {self.monitor} in this model")
 
 		self.best_val = np.inf
 		self.fails = 0

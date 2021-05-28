@@ -9,16 +9,14 @@ class BinaryCrossEntropy(Loss):
 		self.epsilon = epsilon
 
 	def BCE(self, prediction, target):
-		# print(f"prediction {prediction.shape}:\n{prediction}")
+		""" BCE for one features/targets pair """
 
 		# ret = np.mean(np.where(target == 1, np.log(prediction), np.log(1 - prediction)))
-
 		ret = np.mean(target * np.log(prediction + self.epsilon) + (1 - target) * np.log(1 - prediction + self.epsilon))
-		# print(f"ret {ret.shape}:\n{ret}")
-		# exit()
 		return ret
 
 	def compute(self, predictions, targets):
+		""" BCE for one batch of data"""
 		bces = [self.BCE(prediction, target) for prediction, target in zip(predictions, targets)]
 		return -np.mean(bces)
 

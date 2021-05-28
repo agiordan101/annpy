@@ -11,6 +11,7 @@ class Metric(metaclass=ABCMeta):
 		self.name = None
 
 	def __call__(self, predictions, targets):
+		""" self.total -> batch count ?"""
 
 		# total = self.get_mem_len_append(predictions, targets)
 		self.count += self.compute(predictions, targets)
@@ -24,8 +25,8 @@ class Metric(metaclass=ABCMeta):
 		self.mem.append(self.get_result())
 
 	def get_result(self):
-		# if self.total == 0:
-		# 	return self.mem[-1]
+		if self.total == 0:
+			return self.mem[-1]
 		return self.count / self.total
 
 	def get_mem(self):
