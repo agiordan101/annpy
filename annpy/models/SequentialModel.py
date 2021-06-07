@@ -157,6 +157,7 @@ class SequentialModel():
 
 		# Set NumPy seed for kernel/bias initialisation
 		if self.weights_seed:
+			# print(f"Set NumPy random state")
 			np.random.set_state(self.weights_seed)
 		else:
 			self.weights_seed = np.random.get_state()
@@ -203,7 +204,7 @@ class SequentialModel():
 			return self.loss.get_result()
 
 
-	def dataset_fit_setup(self, train_features, train_targets, val_features, val_targets, val_percent, tts_seed):
+	def dataset_fit_setup(self, train_features, train_targets, val_features, val_targets, val_percent):
 
 		if val_features and val_targets:
 			# print(f"Validation dataset is past")
@@ -212,7 +213,7 @@ class SequentialModel():
 		# Split train dataset in two parts
 		elif val_percent:
 			# print(f"Split datasets in 2 batch with val_percent={val_percent}")
-			datasets = SequentialModel.train_test_split(train_features, train_targets, val_percent, tts_seed=tts_seed if tts_seed else self.tts_seed)
+			datasets = SequentialModel.train_test_split(train_features, train_targets, val_percent, tts_seed=self.tts_seed)
 
 		else:
 			# print(f"No validation dataset: train dataset is using for validation")
@@ -268,7 +269,9 @@ class SequentialModel():
 			print_graph=True):
 
 		# Parse datasets
-		self.dataset_fit_setup(train_features, train_targets, val_features, val_targets, val_percent, tts_seed)
+		if tts_seed:
+			self.tts_seed = tts_seed
+		self.dataset_fit_setup(train_features, train_targets, val_features, val_targets, val_percent)
 
 		# Batchs stats
 		self.last_batch_size = len(self.train_features) % batch_size

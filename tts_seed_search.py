@@ -7,7 +7,7 @@ from DataProcessing import DataProcessing
 
 loss = "BinaryCrossEntropy"
 monitored_loss = f'val_{loss}'
-n_seed_search = 2
+n_seed_search = 42
 
 def parsing(dataset_path, seeds_path=None):
 
@@ -19,29 +19,28 @@ def parsing(dataset_path, seeds_path=None):
 	features, targets = data.get_data(binary_targets=['B', 'M'])
 
 	seed = None
-	tts_seed_ = None
 	try:
 		with open(seeds_path, 'r') as f:
 			lines = [elem for elem in f.read().split('\n') if elem and elem[0] == '{']
 			
-			best_loss = 42
+			global best_loss_file
+			best_loss_file = 42
 			for line in lines:
 
 				# print(f"line {type(line)}: {line}")
 				line = json.loads(line)
-				if line.get(monitored_loss, None) < best_loss:
-					best_loss = line.get(monitored_loss, None)
+				if line.get(monitored_loss, None) < best_loss_file:
+					best_loss_file = line.get(monitored_loss, None)
 					seed = line.get('seed', None)
-					tts_seed_ = line.get('tts_seed', None)
-			
-			print(f"end parsing, seed: {type(seed)}, loss: {best_loss}\n")
+
+			print(f"end parsing, seed: {type(seed)}, loss: {best_loss_file}\n")
 
 	except:
 		print(f"No seed.\n")
 
-	return features, targets, features[0].shape[0], seed, tts_seed_
+	return features, targets, features[0].shape[0], seed
 
-def get_model(input_shape, seed=None):
+def get_model(input_shape, seed=None, tts_seed=None):
 
 	model = annpy.models.SequentialModel(
 		input_shape=layers_shp[0],
@@ -81,9 +80,9 @@ def get_model(input_shape, seed=None):
 	)
 	return model
 
-def get_model_train(input_shape, seed=None, graph=False):
+def get_model_train(input_shape, seed=None, tts_seed=None, graph=False):
 
-	model = get_model(input_shape, seed)
+	model = get_model(input_shape, seed, tts_seed)
 	logs = model.fit(
 		features,
 		targets,
@@ -103,53 +102,61 @@ def get_model_train(input_shape, seed=None, graph=False):
 	print(f"Fit result: {logs}")
 	return model, logs
 
-def estimate_seed(input_shape, seed, iter=3):
+def estimate_tts_seed(input_shape, seed, tts_seed, iter=5):
 	# return sum(get_model_train(input_shape, seed)[1][monitored_loss] for i in range(iter)) / iter
 	losses = 0
 	for i in range(iter):
-		print(f"Train {i+1}/{iter} ...")
-		losses += get_model_train(input_shape, seed)[1][monitored_loss]
+		print(f"\nTrain {i+1}/{iter} ...")
+		losses += get_model_train(input_shape, seed, tts_seed)[1][monitored_loss]
 	return losses / iter
 
 
-# Protection & Parsing
-if len(sys.argv) < 2:
-	raise Exception("usage: python3 test.py dataset [seeds]")
+
+# Protection
+if len(sys.argv) < 3:
+	raise Exception("usage: python3 test.py dataset seeds")
 else:
 	print(f"dataset: {sys.argv[1]}\nseeds: {sys.argv[2] if len(sys.argv) > 2 else None}\n")
 
-tts_seed = np.random.get_state() # Random seed
-features, targets, input_shape, seed, tts_seed_ = parsing(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None)
+# Parsing
+features, targets, input_shape, seed = parsing(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None)
 
 layers_shp = (input_shape, 64, 32, 2)
-if tts_seed_:
-	tts_seed = tts_seed_
 
-if not seed:
+# mode = get_model(input_shape, seed)
+# mode2 = get_model(input_shape, seed)
 
-	# Model search
-	best_model = None
-	best_loss = 42
+# mode.deepsummary()
+# mode2.deepsummary()
+# np.random.seed(42)
+# print(np.random.get_state())
+# np.random.seed(101)
+# print(np.random.get_state())
+# i=42
+# np.random.seed(i)
+# print(np.random.get_state())
+# exit(0)
 
-	i = 0
-	while i < n_seed_search:
+best_tts_seed = None
+best_loss = 1
+for i in range(n_seed_search):
 
-		print(f"-- Seed {i+1}/{n_seed_search} --")
-		model, logs = get_model_train(input_shape)
-		print()
+	tts_seed = int(np.random.randn()) % 1000000
+	np.random.seed(tts_seed)
+	loss_ = estimate_tts_seed(input_shape, seed, np.random.get_state())
 
-		seed_loss = estimate_seed(input_shape, model.get_seed())
+	if loss_ < best_loss:
+		best_loss = loss_
+		best_tts_seed = tts_seed
 
-		if seed_loss < best_loss:
-			best_loss = seed_loss
-			best_model = model
+	print(f"tts_seed {i}: {loss_}\n")
 
-		print(f"Seed {i+1}/{n_seed_search} -- Average loss: {seed_loss}\t-- Best loss: {best_loss}\n")
-		i += 1
+print(f"\tBEST TTS_SEED ({n_seed_search}): {best_tts_seed} -- loss: {loss_}\n")
 
-	print(f"Average loss of the best seed ({n_seed_search} tries): {best_loss}")
+if best_loss < best_loss_file:
 
-	seed = best_model.get_seed()
+	np.random.seed(best_tts_seed)
+	tts_seed = np.random.get_state()
 	with open("ressources/seeds.txt", 'a') as f:
 		seed = list(seed)
 		tts_seed = list(tts_seed)
@@ -163,14 +170,10 @@ if not seed:
 			'seed': seed,
 			'tts_seed': tts_seed,
 		}
+		print(f"seed == tts_seed -> {seed == tts_seed}")
 		print(f"Write best loss in file")
 		json.dump(seed_dict, f)
 		print('\n', file=f)
-		# json.dumps(seed_dict)
 
-model, logs = get_model_train(input_shape, seed=seed, graph=False)
-print(f"Fit result:\n{logs}")
-model, logs = get_model_train(input_shape, seed=seed, graph=False)
-print(f"Fit result:\n{logs}")
-model, logs = get_model_train(input_shape, seed=seed, graph=False)
-print(f"Fit result:\n{logs}")
+else:
+	print(f"Best loss found is worst than best loss file fetch in seeds file: {best_loss} (script) > (file) {best_loss_file}")

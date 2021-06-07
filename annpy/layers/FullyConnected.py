@@ -20,7 +20,7 @@ class FullyConnected(Layer):
 					kernel_initializer='GlorotUniform',
 					bias=None,
 					bias_initializer='Zeros',
-					name="Default FCLayer name"):
+					name="FCLayer_name"):
 
 		# print(f"fc init: {(output_shape, input_shape, activation, kernel_initializer, bias_initializer, name)}")
 		super().__init__(

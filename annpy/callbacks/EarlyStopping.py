@@ -77,5 +77,8 @@ class EarlyStopping(Callback):
 	def on_train_end(self, **kwargs):
 		pass
 
+	def restore_best_weights(self, **kwargs):
+		pass
+
 	def summary(self):
 		print(f"Callbacks:\tannpy.callbacks.EarlyStopping")

@@ -10,4 +10,3 @@ To do:
 		To print annpy's error string (+others default data) before Exception string
 		OR
 		Create my own Execption object ?
-	- DataProcessing into annpy
