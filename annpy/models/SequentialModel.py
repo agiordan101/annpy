@@ -267,7 +267,7 @@ class SequentialModel():
 			val_percent=0.2,
 			tts_seed=None,
 			verbose=True,
-			print_graph=True):
+			print_graph=False):
 
 		# Parse datasets
 		if tts_seed:

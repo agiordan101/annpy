@@ -58,9 +58,11 @@ class EarlyStopping(Callback):
 		# print(f"Mode={self.mode}: {value} < {self.best_val} - {self.min_delta}")
 
 		if value <= self.best_val - self.min_delta:
-			self.best_weights = copy.deepcopy(self.model.weights)
-			self.best_val = value
+	
 			self.fails = 0
+			self.best_val = value
+			self.best_weights = copy.deepcopy(self.model.weights)
+			self.best_metrics = {key:value.get_result() for key, value in self.model.metrics.items()}
 			# print(f"New best loss find, save weights:\n{self.best_weights[2]}")
 
 		else:
@@ -82,6 +84,9 @@ class EarlyStopping(Callback):
 
 	def on_train_end(self, **kwargs):
 		pass
+
+	def get_best_metrics(self):
+		return self.best_metrics
 
 	def summary(self):
 		print(f"Callbacks:\tannpy.callbacks.EarlyStopping")

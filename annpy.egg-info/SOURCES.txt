@@ -1,4 +1,3 @@
-README.md
 setup.py
 annpy/__init__.py
 annpy.egg-info/PKG-INFO
@@ -6,19 +5,3 @@ annpy.egg-info/SOURCES.txt
 annpy.egg-info/dependency_links.txt
 annpy.egg-info/requires.txt
 annpy.egg-info/top_level.txt
-annpy/Activations/__init__.py
-annpy/Layers/Layer.py
-annpy/Layers/__init__.py
-annpy/Losses/__init__.py
-annpy/Models/__init__.py
-annpy/Models/sequential.py
-annpy/Optimizers/SGD.py
-annpy/Optimizers/__init__.py
-annpy/activations/__init__.py
-annpy/layers/Layer.py
-annpy/layers/__init__.py
-annpy/losses/__init__.py
-annpy/models/__init__.py
-annpy/models/sequential.py
-annpy/optimizers/SGD.py
-annpy/optimizers/__init__.py

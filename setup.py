@@ -9,7 +9,7 @@ setup(
     packages=[
         'annpy'
     ],
-    long_description=open('README.md').read(),
+    long_description=open('annpy/README.md').read(),
     install_requires=[
         'numpy==1.19.3',
         'numba==0.43.1'

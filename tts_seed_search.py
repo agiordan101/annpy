@@ -78,37 +78,39 @@ def get_model(input_shape, seed=None, tts_seed=None):
 	)
 	return model
 
-def get_model_train(input_shape, seed=None, tts_seed=None, graph=False):
+def get_model_train(input_shape, seed=None, graph=False):
 
-	model = get_model(input_shape, seed, tts_seed)
+	model = get_model(input_shape, seed)
+
+	early_stopping = annpy.callbacks.EarlyStopping(
+		model=model,
+		monitor=monitored_loss,
+		patience=15,
+	)
+
 	logs = model.fit(
 		features,
 		targets,
-		epochs=100,
+		epochs=500,
 		batch_size=32,
-		callbacks=[
-			annpy.callbacks.EarlyStopping(
-				model=model,
-				monitor=monitored_loss,
-				patience=10,
-			)
-		],
-		# val_percent=None, # Bug
+		callbacks=[early_stopping],
 		verbose=False,
 		print_graph=graph
 	)
-	p={key:min(value) for key, value in logs.items()}
-	print(f"Fit result: {p}")
+
+	print(f"Fit result: {logs[monitored_loss][-1]}")
+	logs = early_stopping.get_best_metrics()
+	print(f"Fit best  : {logs}")
 	return model, logs
+
 
 def estimate_tts_seed(input_shape, seed, tts_seed, iter=5):
 	# return sum(get_model_train(input_shape, seed)[1][monitored_loss] for i in range(iter)) / iter
 	losses = 0
 	for i in range(iter):
 		print(f"\nTrain {i+1}/{iter} ...")
-		losses += min(get_model_train(input_shape, seed, tts_seed)[1][monitored_loss])
+		losses += get_model_train(input_shape, seed, tts_seed)[1][monitored_loss]
 	return losses / iter
-
 
 
 # Protection
