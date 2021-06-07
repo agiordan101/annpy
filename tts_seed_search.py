@@ -78,9 +78,9 @@ def get_model(input_shape, seed=None, tts_seed=None):
 	)
 	return model
 
-def get_model_train(input_shape, seed=None, graph=False):
+def get_model_train(input_shape, seed=None, tts_seed=None, graph=False):
 
-	model = get_model(input_shape, seed)
+	model = get_model(input_shape, seed, tts_seed)
 
 	early_stopping = annpy.callbacks.EarlyStopping(
 		model=model,
