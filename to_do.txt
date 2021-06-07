@@ -4,8 +4,8 @@ To do:
 	- regularizer
 	- EarlyStopping save weights
 	- Dropout layer
-	- utils.parse -> utils.parsing
-	- utils.processing with DataProcessing() + 			  shuffle_datasets() + train_val_split()
+	- Rename utils.parse -> utils.parsing
+	- Create utils.processing with DataProcessing() + shuffle_datasets() + train_val_split() inside
 	- raise Exception(...)   ->  raise annpy_error(...).
 		To print annpy's error string (+others default data) before Exception string
 		OR

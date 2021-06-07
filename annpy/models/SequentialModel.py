@@ -1,5 +1,5 @@
-from annpy import activations, layers
 import annpy
+from annpy import activations, layers
 from annpy.losses.Loss import Loss
 from annpy.layers.Layer import Layer
 from annpy.metrics.Metric import Metric
@@ -7,6 +7,7 @@ from annpy.metrics.Accuracy import Accuracy
 from annpy.metrics.RangeAccuracy import RangeAccuracy
 from annpy.optimizers.Optimizer import Optimizer
 
+# from abc import classmethod
 import json
 import numpy as np
 import pandas as pd
@@ -15,23 +16,37 @@ import plotly.express as px
 class SequentialModel():
 
 	@classmethod
-	def shuffle_datasets(cls, a, b, copy=False):
-
+	def shuffle_datasets(cls, a, b, seed=None, copy=False):
+	# shuffle_datasets needs to be used without SequentialModel
+		"""
+			If seed is None: shuffle_datasets doesn't care about NumPy seed (?)
+			If not: shuffle_datasets need to not modify current NumPy seed
+		"""
 		if copy:
 			a = a.copy()
 			b = b.copy()
 
-		seed = np.random.get_state()
+		if seed:
+			# actual_seed = np.random.get_state()
+			np.random.set_state(seed)
+			shuffle_seed = seed
+		else:
+			shuffle_seed = np.random.get_state()
+
 		np.random.shuffle(a)
-		np.random.set_state(seed)
+		np.random.set_state(shuffle_seed)
 		np.random.shuffle(b)
+
+		# if seed:
+		# 	np.random.set_state(actual_seed)
 		return a, b
 
 	@classmethod
-	def train_test_split(cls, features, targets, val_percent, shuffle=True):
+	def train_test_split(cls, features, targets, val_percent, shuffle=True, tts_seed=None):
+	# train_test_split needs to be used without SequentialModel
 
 		if shuffle:
-			features, targets = cls.shuffle_datasets(features, targets)
+			features, targets = cls.shuffle_datasets(features, targets, seed=tts_seed)
 
 		i = int(val_percent * len(features))
 		return features[i:, :], targets[i:, :], features[:i, :], targets[:i, :]
@@ -64,17 +79,15 @@ class SequentialModel():
 					input_shape=None,
 					input_layer=None,
 					name="default_model_name",
-					seed=None):
-
-		if seed:
-			self.seed = seed
-			np.random.set_state(seed)
-		else:
-			self.seed = np.random.get_state() ###########################################
+					seed=None,
+					tts_seed=None):
 
 		self.name = name
 		self.input_shape = input_shape
 		self.weights = []
+
+		self.weights_seed = seed
+		self.tts_seed = tts_seed
 
 		if input_layer:
 			self.sequence = [input_layer]
@@ -142,6 +155,12 @@ class SequentialModel():
 		else:
 			raise Exception(f"[annpy error] SequentialModel.compile(): input_shape of layer 0 missing")
 
+		# Set NumPy seed for kernel/bias initialisation
+		if self.weights_seed:
+			np.random.set_state(self.weights_seed)
+		else:
+			self.weights_seed = np.random.get_state()
+
 		input_shape = self.input_shape
 		for layer in self.sequence:
 
@@ -149,7 +168,7 @@ class SequentialModel():
 			weights = layer.compile(input_shape)
 			self.weights.append(weights)
 
-			# Save weights reference in optimizer
+			# Save weights references in optimizer
 			self.optimizer.add(weights)
 
 			# Save next input shape
@@ -163,7 +182,7 @@ class SequentialModel():
 		self.sequence_rev.reverse()
 
 	def get_seed(self):
-		return self.seed
+		return self.weights_seed
 
 	def forward(self, inputs):
 		for layer in self.sequence:
@@ -184,7 +203,7 @@ class SequentialModel():
 			return self.loss.get_result()
 
 
-	def dataset_fit_setup(self, train_features, train_targets, val_features, val_targets, val_percent):
+	def dataset_fit_setup(self, train_features, train_targets, val_features, val_targets, val_percent, tts_seed):
 
 		if val_features and val_targets:
 			# print(f"Validation dataset is past")
@@ -193,7 +212,7 @@ class SequentialModel():
 		# Split train dataset in two parts
 		elif val_percent:
 			# print(f"Split datasets in 2 batch with val_percent={val_percent}")
-			datasets = SequentialModel.train_test_split(train_features, train_targets, val_percent)
+			datasets = SequentialModel.train_test_split(train_features, train_targets, val_percent, tts_seed=tts_seed if tts_seed else self.tts_seed)
 
 		else:
 			# print(f"No validation dataset: train dataset is using for validation")
@@ -244,11 +263,12 @@ class SequentialModel():
 			val_features=None,
 			val_targets=None,
 			val_percent=0.2,
+			tts_seed=None,
 			verbose=True,
 			print_graph=True):
 
 		# Parse datasets
-		self.dataset_fit_setup(train_features, train_targets, val_features, val_targets, val_percent)
+		self.dataset_fit_setup(train_features, train_targets, val_features, val_targets, val_percent, tts_seed)
 
 		# Batchs stats
 		self.last_batch_size = len(self.train_features) % batch_size
@@ -428,9 +448,11 @@ class SequentialModel():
 			'model': self._save()
 		}
 
-		with open(f"{folder_path}/{self.name}_weights.json", 'w') as f:
+		file_path = f"{folder_path}/{self.name}_weights.json"
+		with open(file_path, 'w') as f:
 			# f.write(struct)
 			json.dump(struct, f, indent=4)
+			print(f"Successfully save model at {file_path}")
 
 		return self.weights_file_name, struct
 
@@ -468,5 +490,7 @@ class SequentialModel():
 					bias=layer.get('bias'),
 					name=layer.get('name')
 				))
+			
+			print(f"Successfully load model at {file_path}")
 
 		return model

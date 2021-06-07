@@ -35,10 +35,12 @@ class FullyConnected(Layer):
 			# print(f"kernel: {kernel}")
 			self.kernel = np.array(kernel)
 		if bias:
+			# print(f"bias: {bias}")
 			self.bias = np.array(bias)
 
 	def compile(self, input_shape):
 
+		self.input_shape = input_shape
 		self.kernel_shape = (input_shape, self.output_shape)
 
 		if self.kernel is None:
