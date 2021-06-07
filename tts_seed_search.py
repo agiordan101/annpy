@@ -3,15 +3,13 @@ import json
 import annpy
 import numpy as np
 
-from DataProcessing import DataProcessing
-
 loss = "BinaryCrossEntropy"
 monitored_loss = f'val_{loss}'
 n_seed_search = 42
 
 def parsing(dataset_path, seeds_path=None):
 
-	data = DataProcessing()
+	data = annpy.parsing.DataProcessing()
 	data.parse_dataset(dataset_path=dataset_path,
 						columns_range=[1, None],
 						target_index=0)
@@ -92,14 +90,15 @@ def get_model_train(input_shape, seed=None, tts_seed=None, graph=False):
 			annpy.callbacks.EarlyStopping(
 				model=model,
 				monitor=monitored_loss,
-				patience=15,
+				patience=10,
 			)
 		],
 		# val_percent=None, # Bug
 		verbose=False,
 		print_graph=graph
 	)
-	print(f"Fit result: {logs}")
+	p={key:min(value) for key, value in logs.items()}
+	print(f"Fit result: {p}")
 	return model, logs
 
 def estimate_tts_seed(input_shape, seed, tts_seed, iter=5):
@@ -107,7 +106,7 @@ def estimate_tts_seed(input_shape, seed, tts_seed, iter=5):
 	losses = 0
 	for i in range(iter):
 		print(f"\nTrain {i+1}/{iter} ...")
-		losses += get_model_train(input_shape, seed, tts_seed)[1][monitored_loss]
+		losses += min(get_model_train(input_shape, seed, tts_seed)[1][monitored_loss])
 	return losses / iter
 
 

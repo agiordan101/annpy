@@ -32,6 +32,13 @@ class Metric(metaclass=ABCMeta):
 	def get_mem(self):
 		return self.mem
 
+	def get_best_epoch(self, **kwargs):
+		return self.mem.index(
+			min(self.mem)
+			if self.get_variation_goal() == 'min' else
+			max(self.mem)
+		)
+
 	def reset(self, save):
 		if save:
 			self.save_result()

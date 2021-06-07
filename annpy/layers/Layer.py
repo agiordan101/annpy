@@ -31,12 +31,12 @@ class Layer(metaclass=ABCMeta):
 		self.bias_shape = output_shape
 
 		if kernel_initializer:
-			self.kernel_initializer = annpy.utils.parse.parse_object(kernel_initializer, Initializer)
+			self.kernel_initializer = annpy.parsing.parse.parse_object(kernel_initializer, Initializer)
 		if bias_initializer:
-			self.bias_initializer = annpy.utils.parse.parse_object(bias_initializer, Initializer)
+			self.bias_initializer = annpy.parsing.parse.parse_object(bias_initializer, Initializer)
 
 		# print(f"layer init: {(output_shape, input_shape, activation, kernel_initializer, bias_initializer, name)}")
-		self.fa = annpy.utils.parse.parse_object(activation, Activation)
+		self.fa = annpy.parsing.parse.parse_object(activation, Activation)
 
 	def set_layer_index(self, i):
 		self.layer_index = i

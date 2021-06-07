@@ -46,6 +46,7 @@ class SequentialModel():
 	# train_test_split needs to be used without SequentialModel
 
 		if shuffle:
+			# print(f"Fit tss_seed: {tts_seed[1][:4]}")
 			features, targets = cls.shuffle_datasets(features, targets, seed=tts_seed)
 
 		i = int(val_percent * len(features))
@@ -132,13 +133,13 @@ class SequentialModel():
 			raise TypeError("[annpy error] Model: Metrics parameter in compile() is not a list")
 
 		# Parse optimizer, loss
-		self.optimizer = annpy.utils.parse.parse_object(optimizer, Optimizer)
-		self.loss = annpy.utils.parse.parse_object(loss, Loss)
+		self.optimizer = annpy.parsing.parse.parse_object(optimizer, Optimizer)
+		self.loss = annpy.parsing.parse.parse_object(loss, Loss)
 		self.add_metric(self.loss)
 
 		# Parse metrics
 		for metric in metrics:
-			self.add_metric(annpy.utils.parse.parse_object(metric, Metric))
+			self.add_metric(annpy.parsing.parse.parse_object(metric, Metric))
 
 		# print(self.metrics)
 		# exit()
@@ -351,7 +352,9 @@ class SequentialModel():
 				cb.on_epoch_end(verbose=verbose)
 
 			# Save in mem & Reset metrics values
-			self.reset_metrics(save=True)
+			self.reset_metrics()
+			# print(f"metric: {list(self.metrics.values())[0].get_result()}")
+			# print(f"metric: {list(self.metrics.values())[0].get_mem()}")
 
 			if self.stop_trainning:
 				break
@@ -363,14 +366,14 @@ class SequentialModel():
 		for cb in callbacks:
 			cb.on_train_end()
 
-		return {key:metric.get_result() for key, metric in self.metrics.items()}
+		return {key:metric.get_mem() for key, metric in self.metrics.items()}
 
 
 
 	def get_metrics_logs(self):
 		return ''.join(metric.log() for metric in self.metrics.values())
 
-	def reset_metrics(self, save=False):
+	def reset_metrics(self, save=True):
 		for metric in self.metrics.values():
 			metric.reset(save)
 
@@ -484,7 +487,7 @@ class SequentialModel():
 			)
 
 			for layer in data.get('layers', []):
-				model.add(annpy.utils.parse.parse_object(
+				model.add(annpy.parsing.parse.parse_object(
 					layer.get('type'),
 					Layer,
 					output_shape=layer.get('units'),

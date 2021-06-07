@@ -3,15 +3,13 @@ import json
 import annpy
 import numpy as np
 
-from DataProcessing import DataProcessing
-
 loss = "BinaryCrossEntropy"
 monitored_loss = f'val_{loss}'
-n_seed_search = 42
+n_seed_search = 1
 
 def parsing(dataset_path, seeds_path=None):
 
-	data = DataProcessing()
+	data = annpy.parsing.DataProcessing()
 	data.parse_dataset(dataset_path=dataset_path,
 						columns_range=[1, None],
 						target_index=0)
@@ -22,19 +20,21 @@ def parsing(dataset_path, seeds_path=None):
 	try:
 		with open(seeds_path, 'r') as f:
 			lines = [elem for elem in f.read().split('\n') if elem and elem[0] == '{']
-			
-			best_loss = 42
+
+			global best_loss_file
+			best_loss_file = 42
 			for line in lines:
 
 				# print(f"line {type(line)}: {line}")
 				line = json.loads(line)
-				if line.get(monitored_loss, None) < best_loss:
-					best_loss = line.get(monitored_loss, None)
+				if line.get(monitored_loss, None) < best_loss_file:
+					best_loss_file = line.get(monitored_loss, None)
 					tts_seed_ = line.get('tts_seed', None)
 
-			print(f"end parsing, seed: {type(seed)}, loss: {best_loss}\n")
+			print(f"end parsing, seed: {type(best_loss_file)}, loss: {best_loss_file}\n")
 
-	except:
+	except Exception as e:
+		print(e)
 		print(f"No seed.\n")
 
 	return features, targets, features[0].shape[0], tts_seed_
@@ -85,28 +85,32 @@ def get_model_train(input_shape, seed=None, graph=False):
 	logs = model.fit(
 		features,
 		targets,
-		epochs=100,
+		epochs=500,
 		batch_size=32,
 		callbacks=[
 			annpy.callbacks.EarlyStopping(
 				model=model,
 				monitor=monitored_loss,
-				patience=5,
+				patience=10,
 			)
 		],
 		# val_percent=None, # Bug
 		verbose=False,
 		print_graph=graph
 	)
-	print(f"Fit result: {logs}")
+	
+	best_epoch = model.metrics[monitored_loss].get_best_epoch()
+	best_epoch = {key:value[best_epoch] for key, value in logs.items()}
+	print(f"Fit result: {best_epoch}")
+	# print(f"Fit tss_seed: {tts_seed[1][:4]}")
 	return model, logs
 
-def estimate_seed(input_shape, seed, iter=5):
+def estimate_seed(input_shape, seed, iter=3):
 	# return sum(get_model_train(input_shape, seed)[1][monitored_loss] for i in range(iter)) / iter
 	losses = 0
 	for i in range(iter):
 		print(f"Train {i+1}/{iter} ...")
-		losses += get_model_train(input_shape, seed)[1][monitored_loss]
+		losses += min(get_model_train(input_shape, seed)[1][monitored_loss])
 	return losses / iter
 
 
@@ -119,7 +123,7 @@ else:
 features, targets, input_shape, tts_seed = parsing(sys.argv[1], sys.argv[2] if len(sys.argv) > 2 else None)
 layers_shp = (input_shape, 64, 32, 2)
 
-
+tts_seed = np.random.get_state()
 # Model search
 best_model = None
 best_loss = 42
@@ -142,22 +146,26 @@ while i < n_seed_search:
 
 print(f"Average loss of the best seed ({n_seed_search} tries): {best_loss}")
 
+if best_loss < best_loss_file:
 
-seed = best_model.get_seed()
-with open("ressources/seeds.txt", 'a') as f:
-	seed = list(seed)
-	tts_seed = list(tts_seed)
+	seed = best_model.get_seed()
+	with open("ressources/seeds.txt", 'a') as f:
+		seed = list(seed)
+		tts_seed = list(tts_seed)
 
-	seed[1] = [int(n) for n in seed[1]]
-	tts_seed[1] = [int(n) for n in tts_seed[1]]
+		seed[1] = [int(n) for n in seed[1]]
+		tts_seed[1] = [int(n) for n in tts_seed[1]]
 
-	seed_dict = {
-		monitored_loss: best_loss,
-		'layers_shp': layers_shp,
-		'seed': seed,
-		'tts_seed': tts_seed,
-	}
-	print(f"seed == tts_seed -> {seed == tts_seed}")
-	print(f"Write best loss in file")
-	json.dump(seed_dict, f)
-	print('\n', file=f)
+		seed_dict = {
+			monitored_loss: best_loss,
+			'layers_shp': layers_shp,
+			'seed': seed,
+			'tts_seed': tts_seed,
+		}
+		print(f"seed == tts_seed -> {seed == tts_seed}")
+		print(f"Write best loss in file")
+		json.dump(seed_dict, f)
+		print('\n', file=f)
+
+else:
+	print(f"Best loss found is worst than best loss file fetch in seeds file: {best_loss} (script) > (file) {best_loss_file}")

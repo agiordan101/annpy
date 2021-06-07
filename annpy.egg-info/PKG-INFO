@@ -1,11 +1,16 @@
 Metadata-Version: 1.0
 Name: annpy
-Version: 0.1.0
-Summary: homemade deeplearning library
+Version: 1.0.0
+Summary: Homemade machine learning library
 Home-page: UNKNOWN
 Author: agiordan
 Author-email: UNKNOWN
 License: UNKNOWN
 Description: # MLP_libray
+        
+        Basic Artificial Neural Network library for python machine learning.
+        
+        Author: agiordan
+        
 Keywords: lib
 Platform: UNKNOWN
