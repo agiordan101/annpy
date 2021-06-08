@@ -6,8 +6,10 @@ class SGD(Optimizer):
 	def __init__(self, lr=0.1, momentum=0.0):
 		super().__init__(lr=lr)
 
+		print(f"SGD constructor, momentum: {momentum}")
 		self.v = []
 		self.momentum = momentum
+		self.momentum_rev = 1 - momentum
 
 		if self.momentum:
 			self.gradient_transform = self.sgd_momentum
@@ -27,7 +29,8 @@ class SGD(Optimizer):
 
 	def sgd_momentum(self, gradient, l, wi):
 		# print(f"v[l][w] {self.v[l][wi].shape}:\n{self.v[l][wi]}")
-		self.v[l][wi] = self.momentum * self.v[l][wi] + self.sgd(gradient)
+		self.v[l][wi] = self.momentum * self.v[l][wi] + self.momentum_rev * self.sgd(gradient)
+		# self.v[l][wi] = self.momentum * self.v[l][wi] + self.sgd(gradient)
 		return self.v[l][wi]
 
 	def summary(self):

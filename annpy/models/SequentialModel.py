@@ -125,6 +125,7 @@ class SequentialModel():
 	def compile(self,
 				loss="MSE",
 				optimizer="Adam",
+				optimizer_kwargs={},
 				metrics=[]):
 
 		# -- MODEL --
@@ -133,7 +134,7 @@ class SequentialModel():
 			raise TypeError("[annpy error] Model: Metrics parameter in compile() is not a list")
 
 		# Parse optimizer, loss
-		self.optimizer = annpy.parsing.parse.parse_object(optimizer, Optimizer)
+		self.optimizer = annpy.parsing.parse.parse_object(optimizer, Optimizer, *optimizer_kwargs)
 		self.loss = annpy.parsing.parse.parse_object(loss, Loss)
 		self.add_metric(self.loss)
 
@@ -302,9 +303,9 @@ class SequentialModel():
 			# for step, (features, target) in enumerate(batchs):
 			for step, data in enumerate(batchs):
 
-				if verbose:
-					print(f"STEP={step}/{self.n_batch - 1}")
-					# print(f"STEP={step}/{self.n_batch - 1}\tloss: {self.loss.get_result()}")
+				# if verbose:
+				# 	print(f"STEP={step}/{self.n_batch - 1}")
+				# 	print(f"STEP={step}/{self.n_batch - 1}\tloss: {self.loss.get_result()}")
 
 				# Callbacks BATCH begin
 				for cb in callbacks:
@@ -366,7 +367,7 @@ class SequentialModel():
 		for cb in callbacks:
 			cb.on_train_end()
 
-		return {key:metric.get_mem() for key, metric in self.metrics.items()}
+		return {key: metric.get_mem() for key, metric in self.metrics.items()}
 
 
 
@@ -383,24 +384,21 @@ class SequentialModel():
 			metric.hard_reset()
 
 	def print_graph(self, metrics=[]):
+		# Re work this horrible function
 
 		if metrics:
 			metrics = [self.metrics[metric_name] for metric_name in metrics]
 		else:
 			metrics = self.metrics.values()
 
-		data = {}
-		for metric in metrics:
-			data[str(metric)] = metric.get_mem()
-
-		data = {k:v for k, v in data.items() if len(v)}
+		data = {str(metric) : metric.get_mem() for metric in metrics if metric.get_mem()}
 		data['Subject goal'] = [0.08] * len(list(data.values())[0])
 		data_df = pd.DataFrame(data)
 
-		best_val = {key: max(values) if "accuracy" in key.lower() else min(values) for key, values in data.items()}
-
 		print(data_df)
-		print(f"Best metrics value: {best_val}")
+
+		# best_val = {key: max(values) if "accuracy" in key.lower() else min(values) for key, values in data.items()}
+		# print(f"Best metrics value: {best_val}")
 
 		fig = px.line(data_df)
 		fig.show()

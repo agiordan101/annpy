@@ -8,8 +8,10 @@ class RMSProp(Optimizer):
 
 		self.moment = []
 		self.v = []
-		self.momentum = momentum
-		self.rho = rho
+		self.momentum = momentum			# Momentum of rmsprop
+		self.momentum_rev = 1 - momentum
+		self.rho = rho						# Momentum of square gradient
+		self.rho_rev = 1 - rho
 		self.epsilon = epsilon
 
 		if self.momentum:
@@ -29,11 +31,12 @@ class RMSProp(Optimizer):
 	def rmsprop(self, gradient, l, wi):
 		# print(f"moment[i] {self.moment[l][wi].shape}:\n{self.moment[l][wi]}")
 		# print(f"gradient {gradient.shape}:\n{gradient}")
-		self.moment[l][wi] = self.rho * self.moment[l][wi] + (1 - self.rho) * gradient * gradient
-		return -self.lr / (self.epsilon + np.sqrt(self.moment[l][wi])) * gradient
+		self.moment[l][wi] = self.rho * self.moment[l][wi] + self.rho_rev * gradient * gradient
+		# return -self.lr / (self.epsilon + np.sqrt(self.moment[l][wi])) * gradient
+		return -self.lr * gradient / (self.epsilon + np.sqrt(self.moment[l][wi]))
 
 	def rmsprop_momentum(self, gradient, l, wi):
-		self.v[l][wi] = self.momentum * self.v[l][wi] + self.rmsprop(gradient, l, wi)
+		self.v[l][wi] = self.momentum * self.v[l][wi] + self.momentum_rev * self.rmsprop(gradient, l, wi)
 		return self.v[l][wi]
 
 	def summary(self):
