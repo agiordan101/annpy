@@ -35,67 +35,92 @@ class DataProcessing():
 						parse_targets=True,
 						target_index=1):
 
-		#Open dataset file
-		dataset_file = open(dataset_path, 'r')
-		features_str = dataset_file.read()
-		dataset_file.close()
+		try:
+			#Open dataset file
+			try:
+				dataset_file = open(dataset_path, 'r')
+				features_str = dataset_file.read()
+				dataset_file.close()
+			except Exception as error:
+				print(f"[DataProcessing ERROR] Can't open file:\n{error}")
+				exit(0)
 
-		# Init data structure
-		targets = []
-		features = {}
-		if columns_name:
-			for feature in columns_name:
-				features[feature] = []
-
-		features_str_split = features_str.split("\n")[rows_range[0]:rows_range[1]] if rows_range[1] else features_str.split("\n")[rows_range[0]:]
-		# Fill
-		for student_str in features_str_split:
-			student_strlst = student_str.split(',')[columns_range[0]:columns_range[1]] if columns_range[1] else student_str.split(',')[columns_range[0]:]
-
-			if not features:
-				for i in range(len(student_strlst) - (1 if parse_targets else 0)):
-					features[f"feature_{i}"] = []
-
-			if parse_targets:
-				targets.append(student_strlst[target_index])
-				student_strlst.pop(target_index)
-
+			# Init data structure
+			targets = []
+			features = {}
 			if columns_name:
-				for i, feature in enumerate(columns_name):
-					features[feature].append(float(student_strlst[i]) if student_strlst[i] else 0)
-			else:
-				for i, data in enumerate(student_strlst):
-					features[f"feature_{i}"].append(float(data) if data else 0)
+				for feature in columns_name:
+					features[feature] = []
 
-		self.features = features
-		self.targets = targets
+			# Select rows
+			features_str_split = features_str.split("\n")
+			if rows_range[0] < 0 or len(features_str_split) <= rows_range[1]:
+				print(f"[DataProcessing ERROR] rows_range parameter in parse_dataset() can't match with rows count:\nNumber of rows: {len(features_str_split)}\nrows_range: {rows_range}\n")
+				rows_range = [0, -1]
+			features_str_split = features_str_split[rows_range[0]:rows_range[1]] if rows_range[1] else features_str_split[rows_range[0]:]
+
+			# Fill
+			for student_str in features_str_split:
+
+				# Select features
+				student_strlst = student_str.split(',')
+				if columns_range[0] < 0 or len(student_strlst) <= columns_range[1]:
+					print(f"[DataProcessing ERROR] columns_range parameter in parse_dataset() can't match with features count:\nNumber of features: {len(student_strlst)}\ncolumns_range: {columns_range}\n")
+					columns_range = [0, -1]
+				student_strlst = student_strlst[columns_range[0]:columns_range[1]] if columns_range[1] else student_strlst[columns_range[0]:]
+
+				if not features:
+					for i in range(len(student_strlst) - (1 if parse_targets else 0)):
+						features[f"feature_{i}"] = []
+
+				if parse_targets:
+					targets.append(student_strlst[target_index])
+					student_strlst.pop(target_index)
+
+				if columns_name:
+					for i, feature in enumerate(columns_name):
+						features[feature].append(float(student_strlst[i]) if student_strlst[i] else 0)
+				else:
+					for i, data in enumerate(student_strlst):
+						features[f"feature_{i}"].append(float(data) if data else 0)
+
+			self.features = features
+			self.targets = targets
+
+		except Exception as error:
+			print(f"[DataProcessing ERROR] Error while parse dataset ({dataset_path}):\n{error}")
+			exit(0)
+
 		return self.features, self.targets
 
 	def normalize(self):
 
-		# new_lst = []
-		data = {}
+		try:
+			data = {}
 
-		if self.normalization_data:
-			
-			for (feature, column), (_min, _max) in zip(self.features.items(), self.normalization_data):
-				# new_lst.append([(x - data[0]) / (data[1] - data[0]) for x in item[1].values])
-				data[feature] = [(x - _min) / (_max - _min) if isinstance(x, float) else x for x in column]
+			if self.normalization_data:
+				
+				for (feature, column), (_min, _max) in zip(self.features.items(), self.normalization_data):
+					data[feature] = [(x - _min) / (_max - _min) if isinstance(x, float) else x for x in column]
 
-		else:
-			for feature, column in self.features.items():
-				_min = min(column)
-				_max = max(column)
-				# _min = column.min()
-				# _max = column.max()
-				self.normalization_data.append([_min, _max])
-				data[feature] = [(x - _min) / (_max - _min) if isinstance(x, float) else x for x in column]
-				# data[feature] = [(x - _min) / (_max - _min) for x in column.values]
+			else:
+				for feature, column in self.features.items():
+					_min = min(column)
+					_max = max(column)
+					self.normalization_data.append([_min, _max])
+					data[feature] = [(x - _min) / (_max - _min) if isinstance(x, float) else x for x in column]
 
-		self.features = data
-		# self.features = pd.DataFrame(data=data, columns=self.columns)
+			self.features = data
+
+		except Exception as error:
+			print(f"[DataProcessing ERROR] Error while normalize data:\n{error}")
+			exit(0)
 
 	def get_data(self, binary_targets=[]):
+
+		if not self.features:
+			print(f"No feature found in DataProcessing.")
+			exit(0)
 
 		features = np.array([np.array(features) for features in zip(*list(self.features.values()))])
 		if binary_targets:
@@ -119,29 +144,36 @@ class DataProcessing():
 
 	def save_data(self, file_path, normalization=False, standardization=False):
 
-		with open(file_path, 'w') as f:
+		try:
+			with open(file_path, 'w') as f:
 
-			if normalization:
-				f.write("Normalization data\n")
-				for _min, _max in self.normalization_data:
-					f.write(f"{_min}/{_max}\n")
-			
-			if standardization:
-				f.write("Standardization data\n")
-				for mean, std in self.standardization_data:
-					f.write(f"{mean}/{std}\n")
+				if normalization:
+					f.write("Normalization data\n")
+					for _min, _max in self.normalization_data:
+						f.write(f"{_min}/{_max}\n")
+				
+				if standardization:
+					f.write("Standardization data\n")
+					for mean, std in self.standardization_data:
+						f.write(f"{mean}/{std}\n")
+				f.close()
 
-			f.close()
+		except Exception as error:
+			print(f"[DataProcessing ERROR] Cannot save normalization or standardization data: {error}")
 
 	def load_data(self, file_path, normalization=False, standardization=False):
 
-		with open(file_path, 'r') as f:
-			data = f.read()
+		try:
+			with open(file_path, 'r') as f:
+				data = f.read()
 
-			if normalization:
-				self.normalization_data = [[float(x) for x in line.split('/')] for line in data.split('\n')[1:-1]]
-				print(f"normalization_data: {self.normalization_data}")
+				if normalization:
+					self.normalization_data = [[float(x) for x in line.split('/')] for line in data.split('\n')[1:-1]]
+					print(f"normalization_data: {self.normalization_data}")
 
-			if standardization:
-				self.standardization_data = [[float(x) for x in line.split('/')] for line in data.split('\n')[1:-1]]
-				print(f"standardization_data: {self.standardization_data}")
+				if standardization:
+					self.standardization_data = [[float(x) for x in line.split('/')] for line in data.split('\n')[1:-1]]
+					print(f"standardization_data: {self.standardization_data}")
+
+		except Exception as error:
+			print(f"[DataProcessing ERROR] Cannot load normalization or standardization data: {error}")
