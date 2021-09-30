@@ -64,7 +64,7 @@ class DataProcessing():
 
 				# Select features
 				student_strlst = student_str.split(',')
-				if columns_range[0] < 0 or len(student_strlst) <= columns_range[1]:
+				if columns_range[0] < 0 or (columns_range[1] and len(student_strlst) <= columns_range[1]):
 					print(f"[DataProcessing ERROR] columns_range parameter in parse_dataset() can't match with features count:\nNumber of features: {len(student_strlst)}\ncolumns_range: {columns_range}\n")
 					columns_range = [0, -1]
 				student_strlst = student_strlst[columns_range[0]:columns_range[1]] if columns_range[1] else student_strlst[columns_range[0]:]
