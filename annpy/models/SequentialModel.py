@@ -9,15 +9,17 @@ from annpy.optimizers.Optimizer import Optimizer
 
 # from abc import classmethod
 import json
+import random
 import numpy as np
 import pandas as pd
 import plotly.express as px
+import copy
 
 class SequentialModel():
 
 	@classmethod
 	def shuffle_datasets(cls, a, b, seed=None, copy=False):
-	# shuffle_datasets needs to be used without SequentialModel
+		# shuffle_datasets needs to be used without SequentialModel
 		"""
 			If seed is None: shuffle_datasets doesn't care about NumPy seed (?)
 			If not: shuffle_datasets need to not modify current NumPy seed
@@ -37,27 +39,32 @@ class SequentialModel():
 		np.random.set_state(shuffle_seed)
 		np.random.shuffle(b)
 
-		# if seed:
-		# 	np.random.set_state(actual_seed)
 		return a, b
 
 	@classmethod
 	def train_test_split(cls, features, targets, val_percent, shuffle=True, tts_seed=None):
-	# train_test_split needs to be used without SequentialModel
+		# train_test_split needs to be used without SequentialModel
 
+		# if tts_seed:
+		# 	print(f"SequentialModel constructor: tts_seed: {tts_seed[1][:4]}")
 		if shuffle:
-			# print(f"Fit tss_seed: {tts_seed[1][:4]}")
+
+			# Re seed numpy. Allow independence between tts_seed and w_seed if w_seed=True & tts_seed=False
+			if not tts_seed:
+				np.random.seed(random.choice(np.random.get_state()[1]) % 1000000)
+				tts_seed = np.random.get_state()
+
 			features, targets = cls.shuffle_datasets(features, targets, seed=tts_seed)
 
 		i = int(val_percent * len(features))
-		return features[i:, :], targets[i:, :], features[:i, :], targets[:i, :]
+		return features[i:, :], targets[i:, :], features[:i, :], targets[:i, :], tts_seed
 
 	name: str
 	input_shape: int
 
-	weights:		list = []	# list of layers: [[w0, b0], [..., ...], [wn, bn]]
-	sequence:		list = []	# list of Object: [L0, ..., Ln]
-	sequence_rev:	list = []	# list of Object: [L0, ..., Ln]
+	weights:		list		# list of layers: [[w0, b0], [..., ...], [wn, bn]]
+	sequence:		list		# list of Object: [L0, ..., Ln]
+	sequence_rev:	list		# list of Object: [L0, ..., Ln]
 
 	train_features:		np.ndarray
 	train_targets:		np.ndarray
@@ -69,12 +76,11 @@ class SequentialModel():
 	optimizer:	Optimizer = None
 	accuracy:	Metric = None
 
-	metrics:		dict = {}	# All metrics used for all fitting (train & validation)
+	metrics:		dict		# All metrics used for all fitting (train & validation)
 
-	stop_trainning:	bool = False
 	val_on:			bool = True
-
-	weights_file_name: str = None
+	stop_trainning:	bool = False
+	fit_ret:		dict = None
 
 	def __init__(self,
 					input_shape=None,
@@ -87,8 +93,10 @@ class SequentialModel():
 		self.input_shape = input_shape
 		self.weights = []
 
-		self.weights_seed = seed
+		self.w_seed = seed
 		self.tts_seed = tts_seed
+		# if tts_seed:
+		# 	print(f"SequentialModel constructor: tts_seed: {tts_seed[1][:4]}")
 
 		if input_layer:
 			self.sequence = [input_layer]
@@ -96,12 +104,12 @@ class SequentialModel():
 			self.sequence = []
 
 		self.metrics = {}
-		self.loss = None
-		self.optimizer = None
-		self.accuracy = None
+		# self.loss = None
+		# self.optimizer = None
+		# self.accuracy = None
 
-		self.stop_trainning = False
-		self.val_on = True
+		# self.stop_trainning = False
+		# self.val_on = True
 
 	def __str__(self):
 		return "SequentialModel"
@@ -122,6 +130,18 @@ class SequentialModel():
 		self.metrics[str(cpy)] = cpy
 		self.metrics[str(metric)] = metric
 
+	def compile_metrics(self, loss, metrics):
+
+		# Add loss as metric
+		if isinstance(loss, str):
+			self.add_metric(annpy.parsing.parse.parse_object(loss, Loss))
+		else:
+			self.add_metric(loss)
+
+		# Parse metrics
+		for metric in metrics:
+			self.add_metric(annpy.parsing.parse.parse_object(metric, Metric))
+
 	def compile(self,
 				loss="MSE",
 				optimizer="Adam",
@@ -131,21 +151,16 @@ class SequentialModel():
 		# -- MODEL --
 
 		if not isinstance(metrics, list):
-			raise TypeError("[annpy error] Model: Metrics parameter in compile() is not a list")
+			raise TypeError("[annpy error] Metrics parameter in SequentialModel.compile() is not a List instance")
+		if not isinstance(optimizer_kwargs, dict):
+			raise TypeError("[annpy error] optimizer_kwargs parameter in SequentialModel.compile() is not a Dict instance")
 
 		# Parse optimizer, loss
-		self.optimizer = annpy.parsing.parse.parse_object(optimizer, Optimizer, *optimizer_kwargs)
+		self.optimizer = annpy.parsing.parse.parse_object(optimizer, Optimizer, **optimizer_kwargs)
 		self.loss = annpy.parsing.parse.parse_object(loss, Loss)
-		self.add_metric(self.loss)
+		self.compile_metrics(self.loss, metrics)
 
-		# Parse metrics
-		for metric in metrics:
-			self.add_metric(annpy.parsing.parse.parse_object(metric, Metric))
-
-		# print(self.metrics)
-		# exit()
-
-		# -- sequential --
+		# -- SEQUENTIAL --
 
 		# Handling input_shape
 		if self.input_shape:
@@ -158,11 +173,12 @@ class SequentialModel():
 			raise Exception(f"[annpy error] SequentialModel.compile(): input_shape of layer 0 missing")
 
 		# Set NumPy seed for kernel/bias initialisation
-		if self.weights_seed:
-			# print(f"Set NumPy random state")
-			np.random.set_state(self.weights_seed)
+		if self.w_seed:
+			# print(f"Set NumPy seed: {self.w_seed[1][:4]}")
+			np.random.set_state(self.w_seed)
 		else:
-			self.weights_seed = np.random.get_state()
+			self.w_seed = np.random.get_state()
+			# print(f"Get NumPy seed: {self.w_seed[1][:4]}")
 
 		input_shape = self.input_shape
 		for layer in self.sequence:
@@ -184,26 +200,39 @@ class SequentialModel():
 		self.sequence_rev = self.sequence.copy()
 		self.sequence_rev.reverse()
 
-	def get_seed(self):
-		return self.weights_seed
+	def get_seeds(self):
+		return {
+			'w_seed': self.w_seed,
+			'tts_seed': self.tts_seed,
+		}
 
 	def forward(self, inputs):
-		for layer in self.sequence:
-			inputs = layer.forward(inputs)
-		return inputs
+		try:
+			for layer in self.sequence:
+				inputs = layer.forward(inputs)
+			return inputs
+		except Exception as error:
+			print(f"[annpy error] SequentialModel.forward(): Error in this model structure ?\n{error}")
+			exit(0)
 
-	def evaluate(self, model, features, target, metrics_on=True, return_stats=False):
+	def evaluate(self, features, target, metrics_on=True, return_stats=False, only_val=True):
+		# def evaluate(self, model, features, target, metrics_on=True, return_stats=False):
 
-		prediction = model.forward(features)
+		prediction = self.forward(features)
+		# prediction = model.forward(features)
+		# print(f"metrics 0: {self.metrics}")
 
 		# Metrics actualisation
 		for metric in self.metrics.values():
-			if 'val_' in str(metric):
+			if not only_val or 'val_' in str(metric):
 				metric.reset(save=False)
 				metric(prediction, target)
+				# print(f"{str(metric)}: count / total {metric.count} / {metric.total}")
+				# print(f"metric: {metric} / {metric.get_mem()}")
 
+		# print(f"metrics 1: {self.metrics}")
 		if return_stats:
-			return self.loss.get_result()
+			return {key: metric.get_result() for key, metric in self.metrics.items() if not only_val or 'val_' in key}
 
 
 	def dataset_fit_setup(self, train_features, train_targets, val_features, val_targets, val_percent):
@@ -216,6 +245,8 @@ class SequentialModel():
 		elif val_percent:
 			# print(f"Split datasets in 2 batch with val_percent={val_percent}")
 			datasets = SequentialModel.train_test_split(train_features, train_targets, val_percent, tts_seed=self.tts_seed)
+			if not self.tts_seed:
+				self.tts_seed = datasets[4]
 
 		else:
 			# print(f"No validation dataset: train dataset is using for validation")
@@ -233,7 +264,7 @@ class SequentialModel():
 
 		# Shuffle
 		if shuffle:
-			a, b = SequentialModel.shuffle_datasets(self.train_features, self.train_targets, copy=False)
+			a, b = SequentialModel.shuffle_datasets(self.train_features, self.train_targets)
 
 		if self.last_batch_size:
 			last_f = a[-self.last_batch_size:]
@@ -270,9 +301,14 @@ class SequentialModel():
 			verbose=True,
 			print_graph=False):
 
+		train_features = copy.deepcopy(train_features)
+		train_targets = copy.deepcopy(train_targets)
+
 		# Parse datasets
 		if tts_seed:
 			self.tts_seed = tts_seed
+			print(f"tts_seed: {tts_seed[1][:4]}")
+			
 		self.dataset_fit_setup(train_features, train_targets, val_features, val_targets, val_percent)
 
 		# Batchs stats
@@ -341,7 +377,8 @@ class SequentialModel():
 				for cb in callbacks:
 					cb.on_batch_end()
 
-			self.evaluate(self, self.val_features, self.val_targets)
+			self.evaluate(self.val_features, self.val_targets)
+			# self.evaluate(self, self.val_features, self.val_targets)
 
 			if verbose:
 				# Get total metrics data of this epoch
@@ -367,8 +404,8 @@ class SequentialModel():
 		for cb in callbacks:
 			cb.on_train_end()
 
-		return {key: metric.get_mem() for key, metric in self.metrics.items()}
-
+		self.fit_ret = {key: metric.get_mem() for key, metric in self.metrics.items()}
+		return self.fit_ret
 
 
 	def get_metrics_logs(self):
@@ -435,66 +472,73 @@ class SequentialModel():
 
 	def _save(self):
 		return {
-			'name': self.name,
 			'type': "SequentialModel",
+			'name': self.name,
 			'input_shape': self.input_shape,
 			'layers': [layer._save() for layer in self.sequence]
 		}
 
-	def save_weights(self, folder_path):
+	def save_weights(self, folder_path, file_name=None):
 		"""
 			Specific configuration to only save weights
 		"""
 
-		self.weights_file_name = self.weights_file_name or f"{folder_path}/{self.name}_weights.json"
+		file_name = file_name or f"{self.name}_weights"
 		struct = {
 			'file_type': "Only weights",
 			'model': self._save()
 		}
 
-		file_path = f"{folder_path}/{self.name}_weights.json"
+		file_path = f"{folder_path}/{file_name}.json"
 		with open(file_path, 'w') as f:
 			# f.write(struct)
 			json.dump(struct, f, indent=4)
 			print(f"Successfully save model at {file_path}")
 
-		return self.weights_file_name, struct
+		return file_path, struct
 
 	@classmethod
 	def load_model(obj, file_path):
 
 		model = None
-		with open(file_path, 'r') as f:
-			data = json.loads(f.read())
 
-			if data.get('file_type') != "Only weights":
-				raise Exception(f"[annpy error] load_model: Wrong <file_type> for file {file_path}")
+		try:
+			with open(file_path, 'r') as f:
+				data = json.loads(f.read())
 
-			data = data.get('model')
+				if data['file_type'] != "Only weights":
+					raise Exception(f"[annpy error] load_model: Wrong <file_type> for file {file_path}")
 
-			# print(f"Object __name__: >{type(model.get('type'))}< =?= >{type(obj.__name__)}<")
-			# print(f"Object __name__: >{model.get('type')}< =?= >{obj.__name__}<")
-			# print(f"MODEL FILE DATA:\n{model}")
+				data = data['model']
 
-			if data.get('type') != obj.__name__:
-				raise Exception(f"[annpy error] SequentialModel.load_model(): Wrong model type in {file_path} for this classmethod")
+				if data['type'] != obj.__name__:
+					raise Exception(f"[annpy error] SequentialModel.load_model(): Wrong model type in {file_path} for this classmethod")
 
-			model = SequentialModel(
-				input_shape=data.get('input_shape'),
-				name=data.get('name')
-			)
+				model = SequentialModel(
+					input_shape=data['input_shape'],
+					name=data['name']
+				)
 
-			for layer in data.get('layers', []):
-				model.add(annpy.parsing.parse.parse_object(
-					layer.get('type'),
-					Layer,
-					output_shape=layer.get('units'),
-					activation=layer.get('activation'),
-					kernel=layer.get('kernel'),
-					bias=layer.get('bias'),
-					name=layer.get('name')
-				))
-			
-			print(f"Successfully load model at {file_path}")
+				for layer in data['layers']:
+
+					model.add(annpy.parsing.parse.parse_object(
+						layer['type'],
+						Layer,
+						output_shape=layer['units'],
+						activation=layer['activation'],
+						kernel=layer['kernel'],
+						bias=layer['bias'],
+						name=layer['name']
+					))
+				
+				print(f"Successfully load model at '{file_path}'")
+
+		except FileNotFoundError:
+			print(f"[annpy error] SequentialModel.load_model(): File not found at '{file_path}'")
+			exit(1)
+
+		except Exception as error:
+			print(f"[annpy error] SequentialModel.load_model(): Error in model file structure ({file_path}):\n{error}")
+			exit(1)
 
 		return model

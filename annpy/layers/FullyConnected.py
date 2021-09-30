@@ -31,12 +31,18 @@ class FullyConnected(Layer):
 			None if bias else bias_initializer,
 			name
 		)
-		if kernel:
-			# print(f"kernel: {kernel}")
-			self.kernel = np.array(kernel)
-		if bias:
-			# print(f"bias: {bias}")
-			self.bias = np.array(bias)
+
+		try:
+			if kernel:
+				# print(f"kernel: {kernel}")
+				self.kernel = np.array(kernel)
+			if bias:
+				# print(f"bias: {bias}")
+				self.bias = np.array(bias)
+		except Exception as error:
+			print(f"[annpy error] FullyConnected.__init__(): kernel & bias initialization has failed because of invalid parameters")
+			exit(0)
+
 
 	def compile(self, input_shape):
 

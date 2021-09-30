@@ -59,8 +59,9 @@ class DataProcessing():
 				rows_range = [0, -1]
 			features_str_split = features_str_split[rows_range[0]:rows_range[1]] if rows_range[1] else features_str_split[rows_range[0]:]
 
+			n_features = -1
 			# Fill
-			for student_str in features_str_split:
+			for r, student_str in enumerate(features_str_split):
 
 				# Select features
 				student_strlst = student_str.split(',')
@@ -68,6 +69,12 @@ class DataProcessing():
 					print(f"[DataProcessing ERROR] columns_range parameter in parse_dataset() can't match with features count:\nNumber of features: {len(student_strlst)}\ncolumns_range: {columns_range}\n")
 					columns_range = [0, -1]
 				student_strlst = student_strlst[columns_range[0]:columns_range[1]] if columns_range[1] else student_strlst[columns_range[0]:]
+
+				if n_features == -1:
+					n_features = len(student_strlst)
+				elif n_features != len(student_strlst):
+					print(f"Same numbers of features is required, row {r} has {len(student_strlst)} features instead of {n_features}")
+					exit(0)
 
 				if not features:
 					for i in range(len(student_strlst) - (1 if parse_targets else 0)):
@@ -91,6 +98,7 @@ class DataProcessing():
 			print(f"[DataProcessing ERROR] Error while parse dataset ({dataset_path}):\n{error}")
 			exit(0)
 
+		print(f"Successfully parse {len(features['feature_0'])} rows of features & {len(targets)} targets")
 		return self.features, self.targets
 
 	def normalize(self):
@@ -111,6 +119,7 @@ class DataProcessing():
 					data[feature] = [(x - _min) / (_max - _min) if isinstance(x, float) else x for x in column]
 
 			self.features = data
+			return data
 
 		except Exception as error:
 			print(f"[DataProcessing ERROR] Error while normalize data:\n{error}")
@@ -119,8 +128,8 @@ class DataProcessing():
 	def get_data(self, binary_targets=[]):
 
 		if not self.features:
-			print(f"No feature found in DataProcessing.")
-			exit(0)
+			print(f"[DataProcessing ERROR] No features found in get_data() method.")
+			return None, None
 
 		features = np.array([np.array(features) for features in zip(*list(self.features.values()))])
 		if binary_targets:
